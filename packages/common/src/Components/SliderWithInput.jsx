@@ -23,9 +23,11 @@ class SliderWithInput extends Component {
   };
 
   submitInputValueDebounced = debounce(() => {
-    const inputValue = this.normalizeInputValue(this.state.inputValue);
-    this.props.onChange(inputValue);
-    this.setState({ inputValue });
+    this.setState(prevState => {
+      const inputValue = this.normalizeInputValue(prevState.inputValue);
+      this.props.onChange(inputValue);
+      return { inputValue };
+    });
   }, 800);
 
   submitInputValue = () => {

@@ -85,9 +85,9 @@ class Dropdown extends Component {
     event.preventDefault();
 
     if (!this.props.disabled) {
-      this.setState({
-        isOpen: !this.state.isOpen
-      });
+      this.setState(prevState => ({
+        isOpen: !prevState.isOpen
+      }));
     }
   }
 

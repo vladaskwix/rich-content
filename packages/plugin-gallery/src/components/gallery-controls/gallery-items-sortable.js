@@ -275,9 +275,9 @@ export class SortableComponent extends Component {
   state = this.propsToState(this.props);
 
   onSortEnd = ({ oldIndex, newIndex }) => {
-    this.setState({
-      items: arrayMove(this.state.items, oldIndex, newIndex),
-    }, () => {
+    this.setState(prevState => ({
+      items: arrayMove(prevState.items, oldIndex, newIndex),
+    }), () => {
       this.props.onItemsChange(this.state.items);
     });
   };
@@ -345,7 +345,7 @@ export class SortableComponent extends Component {
   }
 
   toggleSorting = () => {
-    this.setState({ isMobileSorting: !this.state.isMobileSorting });
+    this.setState(prevState => ({ isMobileSorting: !prevState.isMobileSorting }));
   }
 
   deleteSelectedItems() {

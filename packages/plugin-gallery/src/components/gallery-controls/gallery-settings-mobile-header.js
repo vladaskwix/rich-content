@@ -30,7 +30,7 @@ class GallerySettingsMobileHeader extends Component {
           </button>
           {otherTab ?
             <button
-              data-hook="gallerySettingsMobileHeaderMore" onClick={() => this.setState({ showMenu: !this.state.showMenu })}
+              data-hook="gallerySettingsMobileHeaderMore" onClick={() => this.setState(prevState => ({ showMenu: !prevState.showMenu }))}
               aria-label="More" role="menuitem"
               className={classNames(this.styles.gallerySettingsMobileHeader_button, this.styles.gallerySettingsMobileHeader_menuIcon)}
             ><MoreIcon/>
