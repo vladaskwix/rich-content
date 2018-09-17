@@ -184,7 +184,7 @@ class BaseToolbarButton extends React.Component {
     /* eslint-enable jsx-a11y/no-static-element-interactions */
   };
 
-  render = () => {
+  render() {
     const { helpers, disabled, theme: themedStyles } = this.props;
     const { isActive } = this.state;
     const buttonWrapperClassNames = classNames(themedStyles.buttonWrapper);
@@ -211,7 +211,7 @@ class BaseToolbarButton extends React.Component {
         break;
     }
     return toolbarButton;
-  };
+  }
 }
 
 BaseToolbarButton.propTypes = {

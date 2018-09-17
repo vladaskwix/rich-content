@@ -28,6 +28,7 @@
     "@babel/cli": "7.0.0-rc.1",
     "@babel/core": "7.0.0-rc.1",
     "@babel/plugin-proposal-class-properties": "7.0.0-rc.1",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-transform-modules-commonjs": "7.0.0-rc.1",
     "@babel/plugin-transform-runtime": "7.0.0-rc.1",
     "@babel/preset-env": "7.0.0-rc.1",
@@ -35,6 +36,7 @@
     "@babel/runtime": "7.0.0-rc.1",
     "@svgr/cli": "^2.0.0",
     "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^9.0.0",
     "babel-jest": "^23.2.0",
     "babel-loader": "^8.0.0-beta.4",
     "chalk": "^2.4.1",
@@ -85,5 +87,8 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "autobind-decorator": "^2.1.0"
   }
 }

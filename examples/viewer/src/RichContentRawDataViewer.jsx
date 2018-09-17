@@ -70,7 +70,9 @@ class RichContentRawDataViewer extends Component {
       }
   };
 
-  render = () => <JSONInput placeholder={this.state.content} id={this.id} onChange={content => this.onChange(content)} {...this.props} />;
+  render() {
+    return <JSONInput placeholder={this.state.content} id={this.id} onChange={content => this.onChange(content)} {...this.props} />;
+  }
 }
 
 // see https://github.com/AndrewRedican/react-json-editor-ajrm for details

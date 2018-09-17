@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import autobind from 'autobind-decorator';
 import { EditorState, convertFromRaw, CompositeDecorator } from '@wix/draft-js';
 import Editor from 'draft-js-plugins-editor';
 import get from 'lodash/get';
@@ -98,12 +100,12 @@ class RichContentEditor extends Component {
     });
   }
 
-  getToolbars = () => (
-    {
+  getToolbars() {
+    return {
       MobileToolbar: this.toolbars[TOOLBARS.MOBILE] ? this.toolbars[TOOLBARS.MOBILE].Toolbar : null,
       TextToolbar: this.props.textToolbarType === 'static' ? this.toolbars[TOOLBARS.STATIC].Toolbar : null
-    }
-  )
+    };
+  }
 
   getInitialEditorState() {
     const { editorState, initialState, anchorTarget, relValue } = this.props;
@@ -156,43 +158,52 @@ class RichContentEditor extends Component {
     return element && element.querySelector('*[tabindex="0"]');
   }
 
-  getEditorState = () => this.state.editorState;
+  getEditorState() {
+    return this.state.editorState;
+  }
 
-  updateEditorState = editorState => {
+  @autobind
+  updateEditorState(editorState) {
     this.setState({ editorState });
     this.props.onChange && this.props.onChange(editorState);
-  };
+  }
 
-  getCustomCommandHandlers = () => ({
-    commands: [...this.pluginKeyBindings.commands, {
-      command: 'tab',
-      modifiers: [],
-      key: 'Tab'
-    }],
-    commandHanders: {
-      ...this.pluginKeyBindings.commandHandlers,
-      tab: () => {
-        if (this.getToolbars().TextToolbar) {
-          const staticToolbarButton = this.findFocusableChildForElement(`${getStaticTextToolbarId(this.refId)}`);
-          staticToolbarButton && staticToolbarButton.focus();
-        } else {
-          this.editor.blur();
-        }
-      },
-    }
-  });
+  getCustomCommandHandlers() {
+    return {
+      commands: [...this.pluginKeyBindings.commands, {
+        command: 'tab',
+        modifiers: [],
+        key: 'Tab'
+      }],
+      commandHanders: {
+        ...this.pluginKeyBindings.commandHandlers,
+        tab: () => {
+          if (this.getToolbars().TextToolbar) {
+            const staticToolbarButton = this.findFocusableChildForElement(`${getStaticTextToolbarId(this.refId)}`);
+            staticToolbarButton && staticToolbarButton.focus();
+          } else {
+            this.editor.blur();
+          }
+        },
+      }
+    };
+  }
 
-  focus = () => this.editor.focus();
+  focus() {
+    this.editor.focus();
+  }
 
-  blur = () => this.editor.blur();
+  blur() {
+    this.editor.blur();
+  }
 
   setEditor = ref => this.editor = get(ref, 'editor', ref);
 
-  updateBounds = editorBounds => {
+  updateBounds(editorBounds) {
     this.subscriberPubsubs.forEach(pubsub => pubsub.set('editorBounds', editorBounds));
-  };
+  }
 
-  renderToolbars = () => {
+  renderToolbars() {
     if (!this.props.readOnly) {
       const toolbarsToIgnore = [
         'MobileToolbar',
@@ -211,9 +222,9 @@ class RichContentEditor extends Component {
       });
       return toolbars;
     }
-  };
+  }
 
-  renderInlineModals = () => {
+  renderInlineModals() {
     if (!this.props.readOnly) {
       //eslint-disable-next-line array-callback-return
       const modals = this.plugins.map((plugin, index) => {
@@ -225,7 +236,7 @@ class RichContentEditor extends Component {
       });
       return modals;
     }
-  };
+  }
 
   renderEditor = () => {
     const {

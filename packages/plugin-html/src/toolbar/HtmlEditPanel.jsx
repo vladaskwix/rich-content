@@ -97,7 +97,7 @@ class HtmlEditPanel extends Component {
 
   isValid = () => !this.getError();
 
-  render = () => {
+  render() {
     const { styles } = this;
     const { srcType, submitted } = this.state;
     const { t, tabIndex, theme } = this.props;
@@ -170,7 +170,7 @@ class HtmlEditPanel extends Component {
         </div>
       </div>
     );
-  };
+  }
 }
 
 HtmlEditPanel.propTypes = {

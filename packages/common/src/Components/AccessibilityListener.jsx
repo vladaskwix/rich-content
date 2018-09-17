@@ -32,7 +32,9 @@ export default class AccessibilityListener extends Component {
     }
   }
 
-  render = () => null;
+  render() {
+    return null;
+  }
 }
 
 AccessibilityListener.propTypes = {

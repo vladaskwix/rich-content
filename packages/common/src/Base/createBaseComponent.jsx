@@ -195,7 +195,7 @@ const createBaseComponent = ({ PluginComponent, theme, settings, pubsub, helpers
       pubsub.set(batchUpdates);
     }
 
-    render = () => {
+    render() {
       const { blockProps, className, onClick, selection } = this.props;
       const { componentData, readOnly } = this.state;
       const { link, width, height } = componentData.config || {};
@@ -268,7 +268,7 @@ const createBaseComponent = ({ PluginComponent, theme, settings, pubsub, helpers
         </div>
       );
       /* eslint-enable jsx-a11y/anchor-has-content */
-    };
+    }
   }
 
   WrappedComponent.propTypes = {

@@ -23,13 +23,15 @@ export class Tab extends Component {
     this.styles = mergeStyles({ styles, theme: props.theme });
   }
 
-  render = () => this.props.selected &&
+  render() {
+    return this.props.selected &&
     <div
       role="tabpanel" key={this.props.value} aria-labelledby={`${this.props.value}_header`}
       id={`${this.props.value}_panel`} className={this.styles.tabs_panel}
     >
       {this.props.children}
     </div>;
+  }
 }
 
 export class Tabs extends Component {

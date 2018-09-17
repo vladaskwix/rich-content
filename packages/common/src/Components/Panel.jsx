@@ -32,7 +32,7 @@ export default class Panel extends Component {
     this.setState(this.stateFromProps(nextProps.componentState));
   };
 
-  render = () => {
+  render() {
     const Content = this.props.content;
     const modalClasses = classNames(Styles.panelContainer, this.props.theme.panelContainer);
     return (
@@ -48,7 +48,7 @@ export default class Panel extends Component {
         />
       </div>
     );
-  };
+  }
 }
 
 Panel.propTypes = {

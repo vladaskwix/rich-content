@@ -349,7 +349,7 @@ export default function createToolbar({ buttons, theme, pubsub, helpers, isMobil
       ) : null;
     }
 
-    render = () => {
+    render() {
       const { showLeftArrow, showRightArrow, overrideContent: OverrideContent, tabIndex } = this.state;
       const hasArrow = showLeftArrow || showRightArrow;
       const { toolbarStyles: toolbarTheme } = theme || {};
@@ -412,7 +412,7 @@ export default function createToolbar({ buttons, theme, pubsub, helpers, isMobil
           {this.renderPanel()}
         </div>
       );
-    };
+    }
   }
   return BaseToolbar;
 }

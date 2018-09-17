@@ -11,11 +11,13 @@ class ImageLoader extends React.Component {
     this.styles = mergeStyles({ styles, theme: props.theme });
   }
 
-  render = () => (
-    <div className={this.styles.loaderOverlay}>
-      <div className={classNames(this.styles.loader, { [this.styles[this.props.type]]: this.props.type })} />
-    </div>
-  );
+  render() {
+    return (
+      <div className={this.styles.loaderOverlay}>
+        <div className={classNames(this.styles.loader, { [this.styles[this.props.type]]: this.props.type })} />
+      </div>
+    );
+  }
 }
 
 ImageLoader.propTypes = {
