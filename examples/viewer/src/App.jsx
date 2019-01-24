@@ -22,7 +22,7 @@ import {
 } from 'wix-rich-content-plugin-link/dist/module.viewer';
 import { imageTypeMapper } from 'wix-rich-content-plugin-image/dist/module.viewer';
 
-import { Strategy as HashTagStrategy, Component as HashTag } from 'wix-rich-content-plugin-hashtag';
+import { HashtagDecorator } from 'wix-rich-content-plugin-hashtag/dist/module.viewer';
 import { CodeBlockDecorator } from 'wix-rich-content-plugin-code-block/dist/module.viewer';
 import {
   MENTION_TYPE,
@@ -93,6 +93,7 @@ class App extends Component {
         strategy: LinkParseStrategy,
         component: ({ children, decoratedText, rel, target }) => (
           <LinkViewer
+            key={Math.random().toString()}
             componentData={{ rel, target, url: decoratedText }}
             anchorTarget={anchorTarget}
             relValue={relValue}
@@ -102,19 +103,11 @@ class App extends Component {
           </LinkViewer>
         ),
       },
-      {
-        strategy: HashTagStrategy,
-        component: ({ children, decoratedText }) => (
-          <HashTag
-            theme={theme}
-            onClick={this.onHashTagClick}
-            createHref={this.createHref}
-            decoratedText={decoratedText}
-          >
-            {children}
-          </HashTag>
-        ),
-      },
+      new HashtagDecorator({
+        theme,
+        onClick: this.onHashTagClick,
+        createHref: this.createHref,
+      }),
       new CodeBlockDecorator({ theme }),
     ];
 
