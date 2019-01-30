@@ -41,18 +41,44 @@ const getInline = mergedStyles => {
   };
 };
 
-const getList = (ordered, mergedStyles, textDirection) => (children, blockProps) => {
-  const fixedChildren = children.map(child => (child.length ? child : [' ']));
+const getList = (ordered, mergedStyles, textDirection) => (listChildren, blockProps) => {
+  const fixedChildren = listChildren.map(child => (child.length ? child : [' ']));
   const className = ordered ? 'ordered' : 'unordered';
   const containerClassName = mergedStyles[`${className}ListContainer`];
+
+  const headersRegEx = /(\[\$h\d].*?\[h])/;
+  const headersRegExTypeContent = /\[\$(h\d)](.*?)\[h]/;
+  const isString = x => typeof x === 'string';
+  const splitHeadersInStrings = x => (isString(x) ? x.split(headersRegEx) : x);
+
   return (
     <List key={blockProps.keys[0]} keys={blockProps.keys} depth={blockProps.depth} ordered={ordered} className={containerClassName}>
-      {fixedChildren.map((child, i) => {
+      {fixedChildren.map((children, i) => {
         // NOTE: list block data is an array of data entries per list item
         const dataEntry = blockProps.data.length > i ? blockProps.data[i] : {};
+
+        const elements = React.Children.map(children, splitHeadersInStrings);
+        let paragraphGroup = [];
+        const result = [];
+        const elementProps = { className: mergedStyles.elementSpacing };
+        elements.forEach(e => {
+          if (isString(e) && headersRegEx.test(e)) {
+            result.push(<p {...elementProps}>{paragraphGroup}</p>);
+            paragraphGroup = [];
+
+            const [, Type, content] = e.match(headersRegExTypeContent);
+            result.push(<Type {...elementProps}>{content}</Type>);
+          } else {
+            paragraphGroup.push(e);
+          }
+        });
+        if (paragraphGroup.length) {
+          result.push(<p {...elementProps}>{paragraphGroup}</p>);
+        }
+
         return withTextAlignment(
           <li className={mergedStyles[`${className}List`]} key={blockProps.keys[i]}>
-            <p className={mergedStyles.elementSpacing}>{child}</p>
+            {result}
           </li>,
           dataEntry,
           mergedStyles,
