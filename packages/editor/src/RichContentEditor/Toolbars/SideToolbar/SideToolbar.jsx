@@ -60,6 +60,7 @@ export default class SideToolbar extends Component {
         position: {
           transform: 'scale(0)',
         },
+        isVisible,
       });
       return;
     }

@@ -6,6 +6,7 @@ import Editor from 'draft-js-plugins-editor';
 import get from 'lodash/get';
 import merge from 'lodash/merge';
 import includes from 'lodash/includes';
+import debounce from 'lodash/debounce';
 import Measure from 'react-measure';
 import { translate } from 'react-i18next';
 import createEditorToolbars from './Toolbars';
@@ -225,9 +226,13 @@ class RichContentEditor extends Component {
 
   setEditor = ref => (this.editor = get(ref, 'editor', ref));
 
-  updateBounds = editorBounds => {
-    this.subscriberPubsubs.forEach(pubsub => pubsub.set('editorBounds', editorBounds));
-  };
+  updateBounds = debounce(
+    editorBounds => {
+      this.subscriberPubsubs.forEach(pubsub => pubsub.set('editorBounds', editorBounds));
+    },
+    200,
+    { maxWait: 500 }
+  );
 
   renderToolbars = () => {
     if (!this.props.readOnly) {

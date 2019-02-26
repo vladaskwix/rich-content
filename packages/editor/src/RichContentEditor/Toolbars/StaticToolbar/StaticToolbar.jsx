@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import Measure from 'react-measure';
+import debounce from 'lodash/debounce';
 import { DISPLAY_MODE } from 'wix-rich-content-common';
 import Styles from '../../../../statics/styles/static-toolbar.scss';
 
@@ -10,7 +11,7 @@ const displayOptionStyles = {
   [DISPLAY_MODE.FLOATING]: { position: 'absolute' },
 };
 
-export default class StaticToolbar extends React.Component {
+export default class StaticToolbar extends React.PureComponent {
   static propTypes = {
     pubsub: PropTypes.object.isRequired,
     structure: PropTypes.array.isRequired,
@@ -74,7 +75,7 @@ export default class StaticToolbar extends React.Component {
       : Math.min(this.scrollContainer.scrollLeft + clientWidth, scrollWidth);
   }
 
-  setToolbarScrollButton = (scrollLeft, scrollWidth, clientWidth) => {
+  setToolbarScrollButton = debounce((scrollLeft, scrollWidth, clientWidth) => {
     if (this.props.isMobile) {
       return;
     }
@@ -86,7 +87,7 @@ export default class StaticToolbar extends React.Component {
       showLeftArrow: isScroll && scrollLeft === scrollWidth - clientWidth,
       showRightArrow: isScroll && scrollLeft < scrollWidth - clientWidth,
     });
-  };
+  }, 200);
 
   onOverrideContent = overrideContent => this.setState({ overrideContent });
 
