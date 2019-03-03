@@ -1,6 +1,6 @@
 /* eslint-disable react/no-find-dom-node */
-import React, { Component } from 'react';
-import { findDOMNode } from 'react-dom';
+import React, { PureComponent } from 'react';
+import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import pickBy from 'lodash/pickBy';
 import Measure from 'react-measure';
@@ -15,15 +15,14 @@ import { BUTTONS, BUTTONS_BY_KEY, BlockLinkButton, DeleteButton } from './button
 import Panel from '../Components/Panel';
 import toolbarStyles from '../../statics/styles/plugin-toolbar.scss';
 import buttonStyles from '../../statics/styles/plugin-toolbar-button.scss';
+import createWithPubsub from '../Utils/pubsubHoc';
 
 const toolbarOffset = 12;
 
 const getInitialState = () => ({
-  position: { transform: 'translate(-50%) scale(0)' },
+  // position: { transform: 'translate(-50%) scale(0)' },
   showLeftArrow: false,
   showRightArrow: false,
-  componentData: {},
-  componentState: {},
   overrideContent: undefined,
   tabIndex: -1,
 });
@@ -41,7 +40,7 @@ export default function createToolbar({
   uiSettings,
   getToolbarSettings = () => [],
 }) {
-  class BaseToolbar extends Component {
+  class BaseToolbar extends PureComponent {
     constructor(props) {
       super(props);
 
@@ -96,46 +95,62 @@ export default function createToolbar({
       this.state = getInitialState();
     }
 
+    // componentWillReceiveProps(nextProps) {
+    //   if (nextProps.visibleBlock && !this.props.visibleBlock) {
+    //     this.showToolbar();
+    //   }
+    // }
+
     componentDidMount() {
-      pubsub.subscribe('visibleBlock', this.onVisibilityChanged);
-      pubsub.subscribe('componentState', this.onComponentStateChanged);
-      pubsub.subscribe('componentData', this.onComponentDataChanged);
-      pubsub.subscribe('componentAlignment', this.onComponentAlignmentChange);
-      pubsub.subscribe('componentSize', this.onComponentSizeChange);
-      pubsub.subscribe('componentTextWrap', this.onComponentTextWrapChange);
+      // pubsub.subscribe('visibleBlock', this.onVisibilityChanged);
+      // pubsub.subscribe('componentState', this.onComponentStateChanged);
+      // pubsub.subscribe('componentData', this.onComponentDataChanged);
+      // pubsub.subscribe('componentAlignment', this.onComponentAlignmentChange);
+      // pubsub.subscribe('componentSize', this.onComponentSizeChange);
+      // pubsub.subscribe('componentTextWrap', this.onComponentTextWrapChange);
       this.unsubscribeOnBlock = pubsub.subscribeOnBlock({
         key: 'componentLink',
         callback: this.onComponentLinkChange,
       });
-      pubsub.subscribe('editorBounds', this.onEditorBoundsChange);
+      // pubsub.subscribe('editorBounds', this.onEditorBoundsChange);
     }
 
     componentWillUnmount() {
-      pubsub.unsubscribe('visibleBlock', this.onVisibilityChanged);
-      pubsub.unsubscribe('componentState', this.onComponentStateChanged);
-      pubsub.unsubscribe('componentData', this.onComponentDataChanged);
-      pubsub.unsubscribe('componentAlignment', this.onComponentAlignmentChange);
-      pubsub.unsubscribe('componentSize', this.onComponentSizeChange);
-      pubsub.unsubscribe('componentTextWrap', this.onComponentTextWrapChange);
-      pubsub.unsubscribe('editorBounds', this.onEditorBoundsChange);
+      // pubsub.unsubscribe('visibleBlock', this.onVisibilityChanged);
+      // pubsub.unsubscribe('componentState', this.onComponentStateChanged);
+      // pubsub.unsubscribe('componentData', this.onComponentDataChanged);
+      // pubsub.unsubscribe('componentAlignment', this.onComponentAlignmentChange);
+      // pubsub.unsubscribe('componentSize', this.onComponentSizeChange);
+      // pubsub.unsubscribe('componentTextWrap', this.onComponentTextWrapChange);
+      // pubsub.unsubscribe('editorBounds', this.onEditorBoundsChange);
       this.unsubscribeOnBlock && this.unsubscribeOnBlock();
     }
 
-    onEditorBoundsChange = editorBounds => {
-      this.setState({ editorBounds });
-    };
+    componentDidUpdate(prevProps, prevState) {
+      if (!prevState.toolbarHeight) {
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+          toolbarHeight: this.toolbarRef.offsetHeight,
+          offsetParentRect: this.toolbarRef.offsetParent.getBoundingClientRect(),
+        });
+      }
+    }
+
+    // onEditorBoundsChange = editorBounds => { todo shaul:, is this needed?
+    //   this.setState({ editorBounds });
+    // };
 
     onOverrideContent = overrideContent => {
       this.setState({ overrideContent });
     };
 
-    onComponentStateChanged = contentState => {
-      this.setState({ contentState });
-    };
-
-    onComponentDataChanged = componentData => {
-      this.setState({ componentData });
-    };
+    // onComponentStateChanged = contentState => {
+    //   this.setState({ contentState });
+    // };
+    //
+    // onComponentDataChanged = componentData => {
+    //   this.setState({ componentData });
+    // };
 
     onComponentLinkChange = linkData => {
       const { url, targetBlank, nofollow } = linkData || {};
@@ -158,43 +173,41 @@ export default function createToolbar({
       pubsub.set(pickBy({ componentAlignment, componentSize, componentTextWrap }));
     };
 
-    onComponentSizeChange = size => {
-      this.setState({ size });
-    };
+    // onComponentAlignmentChange = alignment => { todo shaul: seems like a way to recalculate where to put the toolbar through the showToolbar in onVisibilityChanged
+    //   this.setState({ alignment }, () => {
+    //     this.onVisibilityChanged(pubsub.get('visibleBlock'));
+    //   });
+    // };
 
-    onComponentAlignmentChange = alignment => {
-      this.setState({ alignment }, () => {
-        this.onVisibilityChanged(pubsub.get('visibleBlock'));
-      });
-    };
+    // onComponentTextWrapChange = textWrap => { todo shaul:, is this needed?
+    //   this.setState({ textWrap });
+    // };
 
-    onComponentTextWrapChange = textWrap => {
-      this.setState({ textWrap });
-    };
+    // onVisibilityChanged = visibleBlock => {
+    //   if (visibleBlock) {
+    //     this.showToolbar();
+    //   } else {
+    //     this.hideToolbar();
+    //   }
+    //
+    //   if (visibleBlock !== this.visibleBlock) {
+    //     this.hidePanels();
+    //   }
+    //
+    //   this.visibleBlock = visibleBlock;
+    // };
+    //
+    // hideToolbar = () => {
+    //   this.setState(getInitialState());
+    // };
 
-    onVisibilityChanged = visibleBlock => {
-      if (visibleBlock) {
-        this.showToolbar();
-      } else {
-        this.hideToolbar();
-      }
-
-      if (visibleBlock !== this.visibleBlock) {
-        this.hidePanels();
-      }
-
-      this.visibleBlock = visibleBlock;
-    };
-
-    hideToolbar = () => {
-      this.setState(getInitialState());
-    };
+    isVisible() {
+      return this.visibilityFn() && this.props.visibleBlock;
+    }
 
     getRelativePositionStyle() {
       const { x, y } = this.offset;
-      const toolbarNode = findDOMNode(this);
-      const toolbarHeight = toolbarNode.offsetHeight;
-      const offsetParentRect = toolbarNode.offsetParent.getBoundingClientRect();
+      const { offsetParentRect = {}, toolbarHeight = 0 } = this.state;
       const offsetParentTop = offsetParentRect.top;
       const offsetParentLeft = offsetParentRect.left;
 
@@ -207,11 +220,7 @@ export default function createToolbar({
       };
     }
 
-    showToolbar = () => {
-      if (!this.visibilityFn()) {
-        return;
-      }
-
+    calcPosition = () => {
       let position;
       if (this.displayOptions.displayMode === DISPLAY_MODE.NORMAL) {
         position = this.getRelativePositionStyle();
@@ -222,16 +231,19 @@ export default function createToolbar({
           transform: 'translate(-50%) scale(1)',
           position: 'absolute',
         };
+      } else {
+        position = { transform: 'translate(-50%) scale(0)' };
       }
+      return position;
 
-      const componentData = pubsub.get('componentData') || {};
-      const componentState = pubsub.get('componentState') || {};
-      this.setState({
-        position,
-        componentData,
-        componentState,
-        tabIndex: 0,
-      });
+      // const componentData = pubsub.get('componentData') || {};
+      // const componentState = pubsub.get('componentState') || {};
+      // this.setState({
+      //   position,
+      //   // componentData,
+      //   // componentState,
+      //   tabIndex: 0, todo shaul: make sure to fix tabIndex
+      // });
     };
 
     scrollToolbar(event, leftDirection) {
@@ -243,11 +255,12 @@ export default function createToolbar({
     }
 
     renderButton = (button, key, themedStyle, separatorClassNames, tabIndex) => {
-      const { alignment, size } = this.state;
+      const { alignment } = this.state;
+      const size = this.props.componentSize;
       const Button = BUTTONS_BY_KEY[button.type] || BaseToolbarButton;
       const buttonProps = {
-        ...this.mapComponentDataToButtonProps(button, this.state.componentData),
-        ...this.mapStoreDataToButtonProps(button, pubsub.store, this.state.componentData),
+        ...this.mapComponentDataToButtonProps(button, this.props.componentData),
+        ...this.mapStoreDataToButtonProps(button, pubsub.store, this.props.componentData),
       };
 
       switch (button.type) {
@@ -337,8 +350,8 @@ export default function createToolbar({
             <Button
               tabIndex={tabIndex}
               theme={themedStyle}
-              componentData={this.state.componentData}
-              componentState={this.state.componentState}
+              componentData={this.props.componentData}
+              componentState={this.props.componentState}
               pubsub={pubsub}
               helpers={helpers}
               key={key}
@@ -398,7 +411,8 @@ export default function createToolbar({
     };
 
     renderInlinePanel() {
-      const { inlinePanel, componentData, componentState } = this.state;
+      const { inlinePanel } = this.state;
+      const { componentData, componentState } = this.props;
       const { PanelContent, keyName } = inlinePanel || {};
 
       return inlinePanel ? (
@@ -421,7 +435,8 @@ export default function createToolbar({
     }
 
     renderPanel() {
-      const { panel, componentData, componentState } = this.state;
+      const { panel } = this.state;
+      const { componentData, componentState } = this.props;
 
       return panel ? (
         <div className={toolbarStyles.pluginToolbar_panel}>
@@ -559,9 +574,9 @@ export default function createToolbar({
       const { toolbarStyles: toolbarTheme } = theme || {};
 
       // TODO: visibilityFn params?
-      if (this.visibilityFn()) {
+      if (this.isVisible()) {
         const props = {
-          style: this.state.position,
+          style: this.calcPosition(),
           className: classNames(
             toolbarStyles.pluginToolbar,
             toolbarTheme && toolbarTheme.pluginToolbar
@@ -569,6 +584,7 @@ export default function createToolbar({
           'data-hook': name ? `${name}PluginToolbar` : null,
         };
 
+        // const ToolbarDecoration = this.ToolbarDecoration || <div>;
         if (this.ToolbarDecoration) {
           const { ToolbarDecoration } = this;
           return (
@@ -581,7 +597,7 @@ export default function createToolbar({
         }
 
         return (
-          <div {...props}>
+          <div ref={ref => (this.toolbarRef = ref)} {...props}>
             {this.renderToolbarContent()}
             {this.renderInlinePanel()}
             {this.renderPanel()}
@@ -592,5 +608,25 @@ export default function createToolbar({
       }
     }
   }
-  return BaseToolbar;
+  BaseToolbar.propTypes = {
+    visibleBlock: PropTypes.bool,
+    componentState: PropTypes.object,
+    componentData: PropTypes.object,
+    componentAlignment: PropTypes.string,
+    componentSize: PropTypes.string,
+  };
+
+  BaseToolbar.defaultProps = {
+    componentState: {},
+    componentData: {},
+  };
+  return createWithPubsub(
+    pubsub,
+    'visibleBlock',
+    'componentState',
+    'componentData',
+    'componentAlignment',
+    'componentSize',
+    'componentTextWrap'
+  )(BaseToolbar);
 }
