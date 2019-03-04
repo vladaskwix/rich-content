@@ -95,62 +95,22 @@ export default function createToolbar({
       this.state = getInitialState();
     }
 
-    // componentWillReceiveProps(nextProps) {
-    //   if (nextProps.visibleBlock && !this.props.visibleBlock) {
-    //     this.showToolbar();
-    //   }
-    // }
-
-    componentDidMount() {
-      // pubsub.subscribe('visibleBlock', this.onVisibilityChanged);
-      // pubsub.subscribe('componentState', this.onComponentStateChanged);
-      // pubsub.subscribe('componentData', this.onComponentDataChanged);
-      // pubsub.subscribe('componentAlignment', this.onComponentAlignmentChange);
-      // pubsub.subscribe('componentSize', this.onComponentSizeChange);
-      // pubsub.subscribe('componentTextWrap', this.onComponentTextWrapChange);
-      this.unsubscribeOnBlock = pubsub.subscribeOnBlock({
-        key: 'componentLink',
-        callback: this.onComponentLinkChange,
-      });
-      // pubsub.subscribe('editorBounds', this.onEditorBoundsChange);
-    }
-
-    componentWillUnmount() {
-      // pubsub.unsubscribe('visibleBlock', this.onVisibilityChanged);
-      // pubsub.unsubscribe('componentState', this.onComponentStateChanged);
-      // pubsub.unsubscribe('componentData', this.onComponentDataChanged);
-      // pubsub.unsubscribe('componentAlignment', this.onComponentAlignmentChange);
-      // pubsub.unsubscribe('componentSize', this.onComponentSizeChange);
-      // pubsub.unsubscribe('componentTextWrap', this.onComponentTextWrapChange);
-      // pubsub.unsubscribe('editorBounds', this.onEditorBoundsChange);
-      this.unsubscribeOnBlock && this.unsubscribeOnBlock();
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-      if (!prevState.toolbarHeight) {
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-          toolbarHeight: this.toolbarRef.offsetHeight,
-          offsetParentRect: this.toolbarRef.offsetParent.getBoundingClientRect(),
-        });
+    componentWillReceiveProps(nextProps) {
+      if (nextProps.componentLink !== this.props.componentLink) {
+        this.onComponentLinkChange(nextProps.componentLink);
       }
+      // Object.keys(nextProps)
+      //   .filter(key => {
+      //     return nextProps[key] !== this.props[key];
+      //   })
+      //   .forEach(key => {
+      //     console.log('changed property:', key, 'from', this.props[key], 'to', nextProps[key]);
+      //   });
     }
-
-    // onEditorBoundsChange = editorBounds => { todo shaul:, is this needed?
-    //   this.setState({ editorBounds });
-    // };
 
     onOverrideContent = overrideContent => {
       this.setState({ overrideContent });
     };
-
-    // onComponentStateChanged = contentState => {
-    //   this.setState({ contentState });
-    // };
-    //
-    // onComponentDataChanged = componentData => {
-    //   this.setState({ componentData });
-    // };
 
     onComponentLinkChange = linkData => {
       const { url, targetBlank, nofollow } = linkData || {};
@@ -173,45 +133,22 @@ export default function createToolbar({
       pubsub.set(pickBy({ componentAlignment, componentSize, componentTextWrap }));
     };
 
-    // onComponentAlignmentChange = alignment => { todo shaul: seems like a way to recalculate where to put the toolbar through the showToolbar in onVisibilityChanged
-    //   this.setState({ alignment }, () => {
-    //     this.onVisibilityChanged(pubsub.get('visibleBlock'));
-    //   });
-    // };
-
-    // onComponentTextWrapChange = textWrap => { todo shaul:, is this needed?
-    //   this.setState({ textWrap });
-    // };
-
-    // onVisibilityChanged = visibleBlock => {
-    //   if (visibleBlock) {
-    //     this.showToolbar();
-    //   } else {
-    //     this.hideToolbar();
-    //   }
-    //
-    //   if (visibleBlock !== this.visibleBlock) {
-    //     this.hidePanels();
-    //   }
-    //
-    //   this.visibleBlock = visibleBlock;
-    // };
-    //
-    // hideToolbar = () => {
-    //   this.setState(getInitialState());
-    // };
-
     isVisible() {
       return this.visibilityFn() && this.props.visibleBlock;
     }
 
     getRelativePositionStyle() {
+      if (!this.toolbarRef) {
+        // this.forceUpdate();
+        return {};
+      }
+      const toolbarHeight = this.toolbarRef.offsetHeight;
+      const {
+        left: offsetParentLeft,
+        top: offsetParentTop,
+      } = this.toolbarRef.offsetParent.getBoundingClientRect();
       const { x, y } = this.offset;
-      const { offsetParentRect = {}, toolbarHeight = 0 } = this.state;
-      const offsetParentTop = offsetParentRect.top;
-      const offsetParentLeft = offsetParentRect.left;
-
-      const boundingRect = pubsub.get('boundingRect');
+      const boundingRect = this.props.boundingRect;
       return {
         top: boundingRect.top - toolbarHeight - toolbarOffset - offsetParentTop + y,
         left: boundingRect.left + boundingRect.width / 2 - offsetParentLeft + x,
@@ -609,24 +546,47 @@ export default function createToolbar({
     }
   }
   BaseToolbar.propTypes = {
-    visibleBlock: PropTypes.bool,
+    visibleBlock: PropTypes.string,
     componentState: PropTypes.object,
     componentData: PropTypes.object,
     componentAlignment: PropTypes.string,
     componentSize: PropTypes.string,
+    componentTextWrap: PropTypes.bool,
+    editorBounds: PropTypes.object,
+    boundingRect: PropTypes.object,
+    componentLink: PropTypes.object,
   };
 
   BaseToolbar.defaultProps = {
     componentState: {},
     componentData: {},
   };
-  return createWithPubsub(
-    pubsub,
+  return createWithPubsub(pubsub, [
     'visibleBlock',
     'componentState',
     'componentData',
     'componentAlignment',
     'componentSize',
-    'componentTextWrap'
-  )(BaseToolbar);
+    'componentTextWrap',
+    'editorBounds',
+    'boundingRect',
+    { key: 'componentLink' },
+  ])(BaseToolbar);
 }
+//
+// function withPropsChecker(WrappedComponent) {
+//   return class PropsChecker extends Component {
+//     componentWillReceiveProps(nextProps) {
+//       Object.keys(nextProps)
+//         .filter(key => {
+//           return nextProps[key] !== this.props[key];
+//         })
+//         .map(key => {
+//           console.log('changed property:', key, 'from', this.props[key], 'to', nextProps[key]);
+//         });
+//     }
+//     render() {
+//       return <WrappedComponent {...this.props} />;
+//     }
+//   };
+// }

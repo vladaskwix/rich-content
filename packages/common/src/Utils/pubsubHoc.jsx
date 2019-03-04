@@ -1,20 +1,33 @@
 import React from 'react';
+import isString from 'lodash/isString';
 
-export default function createWithPubsub(pubsub, ...args) {
+export default function createWithPubsub(pubsub, subscriptionsToProps) {
   return function(WrappedComponent) {
     class WithPubsub extends React.Component {
       static displayName = `WithPubsub(${getDisplayName(WrappedComponent)})`;
       constructor(props) {
         super(props);
-        args.forEach(key =>
-          pubsub.subscribe(key, val => {
-            this.setState({ [key]: val });
-          })
-        );
+        const createChangeToStateHandler = key => val => {
+          setTimeout(() => this.setState({ [key]: val }));
+        };
+
+        subscriptionsToProps.forEach(subscription => {
+          if (isString(subscription)) {
+            pubsub.subscribe(subscription, createChangeToStateHandler(subscription));
+          } else {
+            const { key, blockKey } = subscription;
+            this.blockUnsubscriptions = pubsub.subscribeOnBlock({
+              key,
+              blockKey,
+              callback: createChangeToStateHandler(key),
+            });
+          }
+        });
       }
 
       componentWillUnmount() {
-        args.forEach(key => pubsub.unsubscribe(key));
+        subscriptionsToProps.forEach(key => pubsub.unsubscribe(key));
+        this.blockUnsubscriptions.forEach(unsubscribe => unsubscribe());
       }
 
       render() {
