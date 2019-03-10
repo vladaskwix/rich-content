@@ -1,8 +1,9 @@
 /* eslint-disable react/no-find-dom-node */
-import React, { Component } from 'react';
+import React from 'react';
+import ReactDom from 'react-dom';
 import PropTypes from 'prop-types';
-import { findDOMNode } from 'react-dom';
 import isNil from 'lodash/isNil';
+import isEqual from 'lodash/isEqual';
 import isFunction from 'lodash/isFunction';
 import classNames from 'classnames';
 import createHocName from '../Utils/createHocName';
@@ -10,6 +11,7 @@ import getDisplayName from '../Utils/getDisplayName';
 import { alignmentClassName, sizeClassName, textWrapClassName } from '../Utils/classNameStrategies';
 import { normalizeUrl } from '../Utils/urlValidators';
 import Styles from '../../statics/styles/global.scss';
+import createWithPubsub from '../Utils/pubsubHoc';
 
 const DEFAULTS = {
   alignment: null,
@@ -28,8 +30,9 @@ const createBaseComponent = ({
   relValue,
   t,
   isMobile,
+  Toolbar,
 }) => {
-  class WrappedComponent extends Component {
+  class WrappedComponent extends React.PureComponent {
     static displayName = createHocName('BaseComponent', PluginComponent);
 
     constructor(props) {
@@ -43,10 +46,11 @@ const createBaseComponent = ({
 
     stateFromProps(props) {
       const { getData, readOnly } = props.blockProps;
-      const initialState = pubsub.get('initialState_' + props.block.getKey());
+      const initialStateKey = 'initialState_' + props.block.getKey();
+      const initialState = pubsub.get(initialStateKey);
       if (initialState) {
         //reset the initial state
-        pubsub.set('initialState_' + props.block.getKey(), undefined);
+        pubsub.set(initialStateKey, undefined);
       }
       return {
         componentData: getData() || { config: DEFAULTS },
@@ -59,10 +63,6 @@ const createBaseComponent = ({
       this.updateComponent();
       pubsub.subscribe('componentData', this.onComponentDataChange);
       pubsub.subscribe('componentState', this.onComponentStateChange);
-      pubsub.subscribe('componentAlignment', this.onComponentAlignmentChange);
-      pubsub.subscribe('componentSize', this.onComponentSizeChange);
-      pubsub.subscribe('componentTextWrap', this.onComponentTextWrapChange);
-      pubsub.subscribe('editorBounds', this.onEditorBoundsChange);
       const blockKey = this.props.block.getKey();
       this.unsubscribeOnBlock = pubsub.subscribeOnBlock({
         key: 'componentLink',
@@ -80,22 +80,13 @@ const createBaseComponent = ({
     componentWillUnmount() {
       pubsub.unsubscribe('componentData', this.onComponentDataChange);
       pubsub.unsubscribe('componentState', this.onComponentStateChange);
-      pubsub.unsubscribe('componentAlignment', this.onComponentAlignmentChange);
-      pubsub.unsubscribe('componentSize', this.onComponentSizeChange);
-      pubsub.unsubscribe('componentTextWrap', this.onComponentTextWrapChange);
-      pubsub.unsubscribe('editorBounds', this.onEditorBoundsChange);
       pubsub.set('visibleBlock', null);
       this.unsubscribeOnBlock && this.unsubscribeOnBlock();
     }
 
-    isMe = () => {
-      const { block } = this.props;
-      const updatedVisibleBlock = pubsub.get('visibleBlock');
-      return updatedVisibleBlock === block.getKey();
-    };
-
-    onEditorBoundsChange = editorBounds => {
-      this.setState({ editorBounds });
+    isSelected = () => {
+      const { block, visibleBlock } = this.props;
+      return visibleBlock === block.getKey();
     };
 
     onComponentDataChange = componentData => {
@@ -115,25 +106,8 @@ const createBaseComponent = ({
       }
     };
 
-    onComponentAlignmentChange = alignment => {
-      if (alignment && this.isMeAndIdle) {
-        this.updateComponentConfig({ alignment });
-      }
-    };
-
-    onComponentSizeChange = size => {
-      if (size && this.isMeAndIdle) {
-        this.updateComponentConfig({ size });
-      }
-    };
-
-    onComponentTextWrapChange = textWrap => {
-      if (textWrap && this.isMeAndIdle) {
-        this.updateComponentConfig({ textWrap });
-      }
-    };
-
     onComponentLinkChange = linkData => {
+      this.setState({ linkData });
       const { url, targetBlank, nofollow } = linkData || {};
       if (this.isMeAndIdle) {
         const link = url
@@ -155,15 +129,15 @@ const createBaseComponent = ({
 
     updateComponent() {
       const { block, blockProps } = this.props;
-      if (blockProps.isFocused && blockProps.isCollapsedSelection) {
+      if ((blockProps.isFocused && blockProps.isCollapsedSelection) || this.state.toolbarFocus) {
         this.updateSelectedComponent();
-      } else if (pubsub.get('visibleBlock') === block.getKey()) {
+      } else if (this.props.visibleBlock === block.getKey()) {
         this.updateUnselectedComponent();
       }
     }
 
     get isMeAndIdle() {
-      return this.isMe() && !this.duringUpdate;
+      return this.isSelected() && !this.duringUpdate;
     }
 
     updateComponentConfig = newConfig => {
@@ -175,14 +149,21 @@ const createBaseComponent = ({
       return { top, right, bottom, left, width, height, x, y };
     };
 
+    onToolbarFocus = () => {
+      this.setState({ toolbarFocus: true });
+    };
+    onToolbarBlur = () => {
+      this.setState({ toolbarFocus: false });
+    };
+
     updateSelectedComponent() {
       const { block } = this.props;
 
-      const oldVisibleBlock = pubsub.get('visibleBlock');
+      const oldVisibleBlock = this.props.visibleBlock;
       const visibleBlock = block.getKey();
       if (oldVisibleBlock !== visibleBlock) {
         const batchUpdates = {};
-        const blockNode = findDOMNode(this);
+        const blockNode = this.ref;
         const componentData = this.state.componentData;
         const config = componentData.config || {};
         const boundingRect = this.getBoundingClientRectAsObject(blockNode);
@@ -197,9 +178,11 @@ const createBaseComponent = ({
         pubsub.set(batchUpdates);
       } else {
         //maybe just the position has changed
-        const blockNode = findDOMNode(this);
+        const blockNode = this.ref;
         const boundingRect = this.getBoundingClientRectAsObject(blockNode);
-        pubsub.set('boundingRect', boundingRect);
+        if (!isEqual(this.props.boundingRect, boundingRect)) {
+          pubsub.set('boundingRect', boundingRect);
+        }
       }
     }
 
@@ -214,14 +197,39 @@ const createBaseComponent = ({
       pubsub.set(batchUpdates);
     }
 
+    onClickOutside = () => {
+      this.setState({ focused: false });
+    };
+
+    onFocus = () => {
+      this.setState({ focused: true });
+    };
+
     render = () => {
-      const { blockProps, className, onClick, selection } = this.props;
-      const { componentData, readOnly } = this.state;
+      const {
+        blockProps,
+        className,
+        onClick,
+        selection,
+        editorBounds,
+        boundingRect = {},
+      } = this.props;
+      const { componentData, componentState, readOnly } = this.state;
       const { link, width: currentWidth, height: currentHeight } = componentData.config || {};
       const { width: initialWidth, height: initialHeight } = settings || {};
       const isEditorFocused = selection.getHasFocus();
       const { isFocused } = blockProps;
       const isActive = isFocused && isEditorFocused && !readOnly;
+      const toolbarProps = {
+        componentData,
+        componentState,
+        editorBounds,
+        boundingRect,
+        blockKey: this.props.block.getKey(),
+        onFocus: this.onToolbarFocus,
+        onBlur: this.onToolbarBlur,
+        onLayoutChange: this.updateComponentConfig,
+      };
 
       const ContainerClassNames = classNames(
         {
@@ -315,12 +323,18 @@ const createBaseComponent = ({
           )}
           {!this.state.readOnly && (
             <div
+              ref={ref => (this.ref = ref)}
               role="none"
               data-hook={'componentOverlay'}
               onClick={onClick}
               className={overlayClassNames}
             />
           )}
+          {isFocused ? (
+            <Modal>
+              <Toolbar {...toolbarProps} />
+            </Modal>
+          ) : null}
         </div>
       );
       /* eslint-enable jsx-a11y/anchor-has-content */
@@ -333,9 +347,71 @@ const createBaseComponent = ({
     selection: PropTypes.object.isRequired,
     className: PropTypes.string,
     onClick: PropTypes.func,
+    visibleBlock: PropTypes.string,
+    // componentState: PropTypes.object,
+    // componentData: PropTypes.object,
+    // componentAlignment: PropTypes.string,
+    // componentSize: PropTypes.string,
+    // componentTextWrap: PropTypes.bool,
+    editorBounds: PropTypes.object,
+    boundingRect: PropTypes.object,
+    // componentLink: PropTypes.object,
   };
 
-  return WrappedComponent;
+  return createWithPubsub(pubsub, [
+    'visibleBlock',
+    // 'componentState',
+    // 'componentData',
+    // 'componentAlignment',
+    // 'componentSize',
+    // 'componentTextWrap',
+    'boundingRect',
+    'editorBounds',
+  ])(WrappedComponent);
 };
+
+// function createWithPubsub(WrappedComponent) {
+//   class WithPubsub extends React.Component {
+//     static displayName = `WithPubsub(${getDisplayName(WrappedComponent)})`;
+//     constructor(props) {
+//       super(props);
+//       const createChangeToStateHandler = key => val => {
+//         setTimeout(() => this.setState({ [key]: val }));
+//       };
+//
+//       subscriptionsToProps.forEach(subscription => {
+//         if (isString(subscription)) {
+//           pubsub.subscribe(subscription, createChangeToStateHandler(subscription));
+//         } else {
+//           const { key, blockKey } = subscription;
+//           this.blockUnsubscriptions = pubsub.subscribeOnBlock({
+//             key,
+//             blockKey,
+//             callback: createChangeToStateHandler(key),
+//           });
+//         }
+//       });
+//     }
+//
+//     componentWillUnmount() {
+//       subscriptionsToProps.forEach(key => pubsub.unsubscribe(key));
+//       this.blockUnsubscriptions &&
+//       this.blockUnsubscriptions.forEach(unsubscribe => unsubscribe());
+//     }
+//
+//     render() {
+//       return <WrappedComponent {...this.state} {...this.props} />;
+//     }
+//   }
+//   return WithPubsub;
+// };
+
+class Modal extends React.Component {
+  modalRoot = document.getElementsByClassName('editor')[0];
+  render() {
+    // eslint-disable-next-line react/prop-types
+    return ReactDom.createPortal(this.props.children, this.modalRoot);
+  }
+}
 
 export default createBaseComponent;

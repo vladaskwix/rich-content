@@ -8,25 +8,28 @@ export default function createWithPubsub(pubsub, subscriptionsToProps) {
       constructor(props) {
         super(props);
         const createChangeToStateHandler = key => val => {
-          setTimeout(() => this.setState({ [key]: val }));
+          // setTimeout(() => this.setState({ [key]: val }));
+          this.setState({ [key]: val });
         };
-
+        this.blockUnsubscriptions = [];
         subscriptionsToProps.forEach(subscription => {
           if (isString(subscription)) {
             pubsub.subscribe(subscription, createChangeToStateHandler(subscription));
           } else {
             const { key, blockKey } = subscription;
-            this.blockUnsubscriptions = pubsub.subscribeOnBlock({
-              key,
-              blockKey,
-              callback: createChangeToStateHandler(key),
-            });
+            this.blockUnsubscriptions.push(
+              pubsub.subscribeOnBlock({
+                key,
+                blockKey,
+                callback: createChangeToStateHandler(key),
+              })
+            );
           }
         });
       }
 
       componentWillUnmount() {
-        subscriptionsToProps.forEach(key => pubsub.unsubscribe(key));
+        subscriptionsToProps.forEach(key => isString(key) && pubsub.unsubscribe(key));
         this.blockUnsubscriptions.forEach(unsubscribe => unsubscribe());
       }
 

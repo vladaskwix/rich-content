@@ -82,7 +82,7 @@ class LinkPanelContainer extends PureComponent {
 
     const linkPanelAriaProps = { 'aria-label': 'Link management' };
     return (
-      <FocusManager
+      <div
         className={linkPanelContainerClassName}
         data-hook="linkPanelContainer"
         role="form"
@@ -139,7 +139,7 @@ class LinkPanelContainer extends PureComponent {
             {doneButtonText}
           </button>
         </div>
-      </FocusManager>
+      </div>
     );
   }
 }

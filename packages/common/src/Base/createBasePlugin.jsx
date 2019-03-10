@@ -107,6 +107,7 @@ const createBasePlugin = (config = {}, underlyingPlugin) => {
       anchorTarget,
       relValue,
       isMobile,
+      Toolbar,
     });
 
   const InlineModals = config.inlineModals;
@@ -140,7 +141,6 @@ const createBasePlugin = (config = {}, underlyingPlugin) => {
   };
 
   const commonProps = {
-    Toolbar,
     InsertPluginButtons,
     InlineModals,
     TextButtonMapper,

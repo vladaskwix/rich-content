@@ -134,12 +134,11 @@ export default function createToolbar({
     };
 
     isVisible() {
-      return this.visibilityFn() && this.props.visibleBlock;
+      return this.visibilityFn();
     }
 
     getRelativePositionStyle() {
       if (!this.toolbarRef) {
-        // this.forceUpdate();
         return {};
       }
       const toolbarHeight = this.toolbarRef.offsetHeight;
@@ -149,8 +148,9 @@ export default function createToolbar({
       } = this.toolbarRef.offsetParent.getBoundingClientRect();
       const { x, y } = this.offset;
       const boundingRect = this.props.boundingRect;
+      this.top = this.top || boundingRect.top - toolbarHeight - toolbarOffset - offsetParentTop + y; //prevents recalculating top of linkPanel. (not the best solution)
       return {
-        top: boundingRect.top - toolbarHeight - toolbarOffset - offsetParentTop + y,
+        top: this.top,
         left: boundingRect.left + boundingRect.width / 2 - offsetParentLeft + x,
         transform: 'translate(-50%) scale(1)',
         transition: 'transform 0.15s cubic-bezier(.3,1.2,.2,1)',
@@ -207,7 +207,7 @@ export default function createToolbar({
           return (
             <Button
               alignment={alignment}
-              setLayoutProps={this.setLayoutProps}
+              setLayoutProps={this.props.onLayoutChange}
               theme={themedStyle}
               isMobile={isMobile}
               key={key}
@@ -222,7 +222,7 @@ export default function createToolbar({
           return (
             <Button
               size={size}
-              setLayoutProps={this.setLayoutProps}
+              setLayoutProps={this.props.onLayoutChange}
               theme={themedStyle}
               isMobile={isMobile}
               key={key}
@@ -241,7 +241,7 @@ export default function createToolbar({
             <Button
               size={size}
               alignment={alignment}
-              setLayoutProps={this.setLayoutProps}
+              setLayoutProps={this.props.onLayoutChange}
               theme={themedStyle}
               key={key}
               t={t}
@@ -457,8 +457,10 @@ export default function createToolbar({
       );
       const overrideProps = { onOverrideContent: this.onOverrideContent };
 
+      const dataOffsetKey = this.props.blockKey + '-0-0'; //is used selection mechanism in draft.
+
       return (
-        <div className={buttonContainerClassnames}>
+        <div className={buttonContainerClassnames} data-offset-key={dataOffsetKey}>
           <Measure
             client
             scroll
@@ -519,6 +521,38 @@ export default function createToolbar({
             toolbarTheme && toolbarTheme.pluginToolbar
           ),
           'data-hook': name ? `${name}PluginToolbar` : null,
+          onKeyDown: e => {
+            // console.log(e.type);
+            e.stopPropagation();
+            // e.preventDefault();
+          },
+          onKeyPress: e => {
+            // console.log(e.type);
+            e.nativeEvent.stopImmediatePropagation();
+            // e.preventDefault();
+          },
+          onBeforeInput: e => {
+            // console.log(e.type);
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+            // e.preventDefault();
+          },
+
+          // onFocus: e => {
+          //   console.log(e.type);
+          //   e.stopPropagation();
+          //   e.preventDefault();
+          // },
+          // onInput: e => {
+          //   console.log(e.type);
+          //   e.stopPropagation();
+          //   e.preventDefault();
+          // },
+          // onChange: e => {
+          //   console.log(e.type);
+          //   e.stopPropagation();
+          //   e.preventDefault();
+          // },
         };
 
         // const ToolbarDecoration = this.ToolbarDecoration || <div>;
@@ -555,23 +589,15 @@ export default function createToolbar({
     editorBounds: PropTypes.object,
     boundingRect: PropTypes.object,
     componentLink: PropTypes.object,
+    onLayoutChange: PropTypes.func,
+    blockKey: PropTypes.string,
   };
 
   BaseToolbar.defaultProps = {
     componentState: {},
     componentData: {},
   };
-  return createWithPubsub(pubsub, [
-    'visibleBlock',
-    'componentState',
-    'componentData',
-    'componentAlignment',
-    'componentSize',
-    'componentTextWrap',
-    'editorBounds',
-    'boundingRect',
-    { key: 'componentLink' },
-  ])(BaseToolbar);
+  return createWithPubsub(pubsub, [{ key: 'componentLink' }])(BaseToolbar);
 }
 //
 // function withPropsChecker(WrappedComponent) {

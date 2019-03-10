@@ -60,6 +60,7 @@
     "jsonschema": "^1.2.4",
     "linkify-it": "^2.0.3",
     "react-measure": "^2.0.2",
+    "react-sticky": "6.0.3",
     "react-tooltip": "^3.6.1",
     "react-window": "1.5.0"
   },
