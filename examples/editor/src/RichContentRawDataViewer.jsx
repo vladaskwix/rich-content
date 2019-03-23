@@ -1,14 +1,30 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import JSONInput from 'react-json-editor-ajrm';
-import get from 'lodash/get';
-import set from 'lodash/set';
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import './RichContentRawDataViewer.css';
+require('codemirror/mode/javascript/javascript');
+let jBeautify = require('js-beautify').js;
 
 class RichContentRawDataViewer extends Component {
   constructor(props) {
     super(props);
-    this.id = `rcrv_${Math.floor(Math.random() * 9999)}`;
     this.state = this.stateFromProps(props);
+    this.options = {
+      mode: {
+        name: 'javascript',
+        json: true,
+      },
+      theme: 'material',
+      lineNumbers: true,
+      lineWrapping: false,
+      autoScroll: true,
+      lineWiseCopyCut: true,
+      viewportMargin: Infinity,
+    };
+  }
+
+  componentDidMount() {
+    this.rawView && this.rawView.getCodeMirror().refresh();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -18,37 +34,11 @@ class RichContentRawDataViewer extends Component {
   }
 
   stateFromProps(props) {
-    return { content: this.fixKeys(props.content) };
+    return { content: this.fixCode(props.content) };
   }
 
-  fixKeys(content) {
-    let fixed = {};
-    if (content && content.entityMap) {
-      let fixedEntityMap = Object.keys(content.entityMap).reduce((map, key) => {
-        const entity = content.entityMap[key];
-        const videoHtml = get(entity, 'data.metadata.html');
-        if (videoHtml) {
-          set(entity, 'data.metadata.html', this.escapeHtml(videoHtml));
-        } else if (get(entity, 'data.srcType') === 'html') {
-          const htmlSrc = get(entity, 'data.src');
-          set(entity, 'data.src', this.escapeHtml(htmlSrc));
-        }
-
-        return Object.assign(map, { [`"${key}"`]: entity });
-      }, {});
-
-      fixed = Object.assign({}, content, { entityMap: fixedEntityMap });
-    }
-
-    if (fixed && fixed.blocks) {
-      const fixedBlocks = fixed.blocks.map(block => {
-        if (block.text) {
-          block.text = this.escapeNewLine(block.text);
-        }
-        return block;
-      });
-      return Object.assign({}, fixed, { blocks: fixedBlocks });
-    }
+  fixCode(content) {
+    return jBeautify(JSON.stringify(content));
   }
 
   escapeNewLine(text) {
@@ -66,16 +56,19 @@ class RichContentRawDataViewer extends Component {
 
   onChange(content) {
     if (content && content.jsObject && !content.error) {
-      this.props.onChange(this.fixKeys(content.jsObject));
+      this.props.onChange(this.fixCode(content.jsObject));
     }
   }
 
   render = () => (
-    <JSONInput
-      placeholder={this.state.content}
-      id={this.id}
-      onChange={content => this.onChange(content)}
-      {...this.props}
+    <CodeMirror
+      ref={ref => (this.rewView = ref)}
+      value={this.state.content}
+      options={this.options}
+      onBeforeChange={(editor, data, value) => {
+        this.setState({ value });
+      }}
+      onChange={(editor, data, value) => {}}
     />
   );
 }

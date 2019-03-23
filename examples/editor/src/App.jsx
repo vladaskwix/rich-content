@@ -261,12 +261,14 @@ class App extends Component {
                   />
                 </div>
                 {this.state.showContentStateEditor && !this.isMobile() && (
-                  <div className="column side">
-                    <RichContentRawDataViewer
-                      onChange={content => this.setState({ content })}
-                      content={convertToRaw(this.state.editorState.getCurrentContent())}
-                      width="740px"
-                    />
+                  <div className="column">
+                    <div className="raw-view">
+                      <RichContentRawDataViewer
+                        onChange={content => this.setState({ content })}
+                        content={convertToRaw(this.state.editorState.getCurrentContent())}
+                        width="740px"
+                      />
+                    </div>
                     <Button
                       className="raw_input_button submit"
                       theme={theme}

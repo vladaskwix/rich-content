@@ -78,6 +78,10 @@
   flex-wrap: nowrap;
 }
 
+.raw-view {
+  width: 650px;
+}
+
 .raw_input_button {
   height: 50px;
   margin-top: 10px;
