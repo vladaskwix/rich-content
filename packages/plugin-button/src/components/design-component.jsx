@@ -1,9 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { SliderWithInput, SettingsSection, mergeStyles } from 'wix-rich-content-common';
+import {
+  ColorPicker,
+  SliderWithInput,
+  SettingsSection,
+  mergeStyles,
+} from 'wix-rich-content-common';
 import classNames from 'classnames';
 import ButtonSample from '../components/button-sample';
-import ColorPicker from './color-picker';
 import styles from '../../statics/styles/design-component-styles.scss';
 
 class DesignComponent extends PureComponent {
