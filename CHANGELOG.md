@@ -8,6 +8,8 @@
 > - :house: [Internal]
 
 ## [Unreleased]
+- `button`
+  - [#275](https://github.com/wix-incubator/rich-content/pull/275) new button plugin
 <hr/>
 
 ## 3.1.1 (Mar 20, 2019)
