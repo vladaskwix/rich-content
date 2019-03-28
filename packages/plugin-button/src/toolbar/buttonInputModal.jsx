@@ -17,7 +17,6 @@ import Navbar from './../components/navbar';
 import PreviewComponent from './../components/preview-component';
 import { settingsTabValue, designTabValue } from '../../src/constants';
 import styles from '../../statics/styles/button-input-modal.scss';
-
 export default class ButtonInputModal extends Component {
   constructor(props) {
     super(props);
@@ -29,9 +28,9 @@ export default class ButtonInputModal extends Component {
       anchorTarget,
     } = this.props;
     const initialButtonColors = {
-      textColor: colors.color_1,
-      borderColor: colors.color_8,
-      backgroundColor: colors.color_8,
+      textColor: colors.color1,
+      borderColor: colors.color8,
+      backgroundColor: colors.color8,
     };
 
     let buttonObj = {};
@@ -71,9 +70,9 @@ export default class ButtonInputModal extends Component {
       componentData: { button },
     } = this.props;
     const initialButtonColors = {
-      textColor: colors.color_1,
-      borderColor: colors.color_8,
-      backgroundColor: colors.color_8,
+      textColor: colors.color1,
+      borderColor: colors.color8,
+      backgroundColor: colors.color8,
     };
     if (!button.textColor) {
       this.setState({ initialComponentData: { ...button, ...initialButtonColors } });

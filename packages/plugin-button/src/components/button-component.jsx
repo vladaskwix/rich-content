@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { normalizeUrl } from 'wix-rich-content-common';
+import get from 'lodash/get';
+import { Context, normalizeUrl } from 'wix-rich-content-common';
+import { COLORS } from '../constants';
 import ButtonViewer from './button-viewer';
 
 class ButtonComponent extends PureComponent {
@@ -15,16 +17,13 @@ class ButtonComponent extends PureComponent {
   }
 
   render() {
-    const { colors } = this.props.settings;
+    const colors = get(this.props, 'settings.colors', COLORS);
     const {
       componentData: { button },
       buttonObj,
-      t,
-      theme,
       blockProps,
     } = this.props;
-    const anchorTarget = this.props.anchorTarget ? this.props.anchorTarget : '_self';
-    const relValue = this.props.relValue ? this.props.relValue : '';
+    const { anchorTarget = '_self', relValue = '', theme } = this.context || this.props;
     let buttonText = button.buttonText;
     let rel = '';
     let url = '';
@@ -41,9 +40,9 @@ class ButtonComponent extends PureComponent {
       borderWidth: button.borderWidth + 'px',
       padding: button.padding + 'px',
       borderRadius: button.borderRadius,
-      color: button.textColor ? button.textColor : colors.color_1,
-      background: button.backgroundColor ? button.backgroundColor : colors.color_8,
-      borderColor: button.borderColor ? button.borderColor : colors.color_8,
+      color: button.textColor ? button.textColor : colors.color1,
+      background: button.backgroundColor ? button.backgroundColor : colors.color8,
+      borderColor: button.borderColor ? button.borderColor : colors.color8,
     };
     url = button.url;
     const textColor = blockProps &&
@@ -75,7 +74,6 @@ class ButtonComponent extends PureComponent {
         target={target}
         rel={rel}
         buttonText={buttonText}
-        t={t}
         theme={theme}
       />
     );
@@ -83,15 +81,13 @@ class ButtonComponent extends PureComponent {
 }
 
 ButtonComponent.propTypes = {
-  theme: PropTypes.object.isRequired,
   componentData: PropTypes.object,
   style: PropTypes.object,
   buttonObj: PropTypes.object,
-  anchorTarget: PropTypes.string,
-  relValue: PropTypes.string,
   settings: PropTypes.object.isRequired,
-  t: PropTypes.func,
   blockProps: PropTypes.object,
 };
+
+ButtonComponent.contextType = Context.type;
 
 export default ButtonComponent;

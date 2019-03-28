@@ -73,7 +73,7 @@ class SettingsComponent extends PureComponent {
   render() {
     const { t, linkInputRef, isMobile } = this.props;
     const { buttonText, url, validUrl } = this.state;
-    const errorTooltip = !validUrl || !this.props.validUrl ? t('ButtonModal_Invalid_Link') : false;
+    const errorTooltip = !validUrl || !this.props.validUrl ? t('ButtonModal_Invalid_Link') : null;
     return (
       <div className={this.styles.section_content}>
         <div className={this.styles.button_name_feild}>
@@ -157,7 +157,7 @@ SettingsComponent.propTypes = {
   validUrl: PropTypes.bool,
   isMobile: PropTypes.bool,
   onKeyPress: PropTypes.func,
-  linkInputRef: PropTypes.object,
+  linkInputRef: PropTypes.func,
   onBlur: PropTypes.func,
 };
 

@@ -2,6 +2,7 @@
 @import '~wix-rich-content-common/dist/statics/styles/palette';
 
 .button_container {
+  cursor: pointer;
   position: relative;
   box-sizing: border-box;
   display: inline-block;
@@ -11,6 +12,7 @@
   border-width: 0px;
   text-decoration: none;
 }
+
 .button_text {
   text-align: center;
   height: 16px;
@@ -23,6 +25,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   white-space: nowrap;
+
   @include phone {
     max-width: calc(100vw - 89px);
   }

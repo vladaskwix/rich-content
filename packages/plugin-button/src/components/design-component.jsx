@@ -21,48 +21,48 @@ class DesignComponent extends PureComponent {
     this.presetStyle = [
       {
         className: 'button_primary',
-        border: '0px solid #' + colors.color_8,
+        border: '0px solid #' + colors.color8,
         borderRadius: '0px',
         borderWidth: '0px',
-        background: colors.color_8,
-        color: colors.color_1,
-        borderColor: colors.color_8,
+        background: colors.color8,
+        color: colors.color1,
+        borderColor: colors.color8,
       },
       {
         className: 'button_secondary',
-        border: '1px solid ' + colors.color_8,
+        border: '1px solid ' + colors.color8,
         borderRadius: '0px',
         borderWidth: '1px',
-        background: colors.color_1,
-        color: colors.color_8,
-        borderColor: colors.color_8,
+        background: colors.color1,
+        color: colors.color8,
+        borderColor: colors.color8,
       },
       {
         className: 'button_secondary',
-        border: '1px solid ' + colors.color_8,
+        border: '1px solid ' + colors.color8,
         borderRadius: '0px',
         borderWidth: '1px',
-        background: colors.color_7,
-        color: colors.color_8,
-        borderColor: colors.color_8,
+        background: colors.color7,
+        color: colors.color8,
+        borderColor: colors.color8,
       },
       {
         className: 'button_secondary',
-        border: '1px solid ' + colors.color_8,
+        border: '1px solid ' + colors.color8,
         borderRadius: '10px',
         borderWidth: '1px',
-        background: colors.color_7,
-        color: colors.color_8,
-        borderColor: colors.color_8,
+        background: colors.color7,
+        color: colors.color8,
+        borderColor: colors.color8,
       },
       {
         className: 'button_secondary',
-        border: '1px solid ' + colors.color_8,
+        border: '1px solid ' + colors.color8,
         borderWidth: '5px',
         borderRadius: '0px',
-        background: colors.color_1,
-        color: colors.color_8,
-        borderColor: colors.color_8,
+        background: colors.color1,
+        color: colors.color8,
+        borderColor: colors.color8,
       },
     ];
     this.state = {
@@ -70,9 +70,9 @@ class DesignComponent extends PureComponent {
       padding: designObj.padding,
       borderRadius: designObj.borderRadius,
       activeButton: designObj.activeButton,
-      textColor: designObj.textColor ? designObj.textColor : colors.color_1,
-      borderColor: designObj.borderColor ? designObj.borderColor : colors.color_8,
-      backgroundColor: designObj.backgroundColor ? designObj.backgroundColor : colors.color_8,
+      textColor: designObj.textColor ? designObj.textColor : colors.color1,
+      borderColor: designObj.borderColor ? designObj.borderColor : colors.color8,
+      backgroundColor: designObj.backgroundColor ? designObj.backgroundColor : colors.color8,
       openedColorPicker: -1,
     };
   }
@@ -205,7 +205,7 @@ class DesignComponent extends PureComponent {
             ariaProps={{ 'aria-label': 'color selection', role: 'region' }}
           >
             <div style={{ border: 'none' }} className={styles.colorPicker_container}>
-              <div className={styles.section_header_color}>{t('ButtonModal_Color_Section')}</div>
+              <div className={styles.section_header_color}>{t('ButtonModal_ColorSection')}</div>
               <ColorPicker
                 {...this.props}
                 onChange={this.onTextColorChange.bind(this)}
