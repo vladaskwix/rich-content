@@ -205,7 +205,7 @@ class DesignComponent extends PureComponent {
             ariaProps={{ 'aria-label': 'color selection', role: 'region' }}
           >
             <div style={{ border: 'none' }} className={styles.colorPicker_container}>
-              <div className={styles.section_header_color}>{t('ButtonModal_ColorSection')}</div>
+              <div className={styles.section_header_color}>{t('ButtonModal_Color_Section')}</div>
               <ColorPicker
                 {...this.props}
                 onChange={this.onTextColorChange.bind(this)}
