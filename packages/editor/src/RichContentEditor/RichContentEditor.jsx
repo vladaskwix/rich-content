@@ -44,7 +44,7 @@ class RichContentEditor extends Component {
     );
 
     this.initContext();
-    this.initPlugins();
+    this.initPlugins(props.plugins);
   }
 
   getEditorState = () => this.state.editorState;
@@ -163,14 +163,19 @@ class RichContentEditor extends Component {
     }
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.plugins !== prevProps.plugins) {
+      const newPlugins = this.props.plugins.filter(p => !prevProps.plugins.includes(p));
+      this.initPlugins(newPlugins);
+    }
+  }
+
   // TODO: get rid of this ASAP!
   // Currently, there's no way to get a static toolbar ref without consumer interference
   findFocusableChildForElement(id) {
     const element = document.getElementById(id);
     return element && element.querySelector('*[tabindex="0"]');
   }
-
-  getEditorState = () => this.state.editorState;
 
   updateEditorState = editorState => {
     this.setEditorState(editorState);

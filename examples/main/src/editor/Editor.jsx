@@ -7,7 +7,6 @@ import { testImages, testVideos } from './mock';
 import * as Plugins from './EditorPlugins';
 import ModalsMap from './ModalsMap';
 
-
 const modalStyleDefaults = {
   content: {
     top: '50%',
@@ -22,10 +21,11 @@ const anchorTarget = '_blank';
 const relValue = 'nofollow';
 
 export default class Editor extends PureComponent {
-  state = {};
+  state = {plugins: [Plugins.editorPlugins[0]]};
   constructor(props) {
     super(props);
     this.initEditorProps();
+    setTimeout(() => this.setState({ plugins: Plugins.editorPlugins }), 5 * 1000);
   }
 
   initEditorProps() {
@@ -137,7 +137,7 @@ export default class Editor extends PureComponent {
           ref={editor => (this.editor = editor)}
           onChange={this.props.onChange}
           helpers={this.helpers}
-          plugins={Plugins.editorPlugins}
+          plugins={this.state.plugins}
           config={Plugins.config}
           editorState={this.props.editorState}
           // initialState={this.state.initialState}
