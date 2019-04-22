@@ -1,9 +1,9 @@
 import createToolbar from './toolbar';
 import { createBasePlugin } from 'wix-rich-content-common';
-import { Component } from './image-component';
+// import { Component } from './image-component';
 import { IMAGE_TYPE, IMAGE_TYPE_LEGACY } from './types';
 
-const createImagePlugin = (config = {}) => {
+const createImagePlugin = Component => (config = {}) => {
   const type = IMAGE_TYPE;
   const { helpers, t, anchorTarget, relValue, [type]: settings = {}, uiSettings, ...rest } = config;
 

@@ -20,7 +20,7 @@ import { createMapPlugin, MAP_TYPE } from 'wix-rich-content-plugin-map';
 import { createFileUploadPlugin, FILE_UPLOAD_TYPE } from 'wix-rich-content-plugin-file-upload';
 import { createTextColorPlugin, TEXT_COLOR_TYPE } from 'wix-rich-content-plugin-text-color';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Highlighter from 'react-highlight-words';
 import casual from 'casual-browserify';
 
@@ -46,8 +46,18 @@ import 'wix-rich-content-plugin-file-upload/dist/styles.min.css';
 // import SideToolbarDecoration from './Components/SideToolbarDecoration';
 // import PluginToolbarDecoration from './Components/PluginToolbarDecoration';
 
+const ImageViewer = React.lazy(() => import('wix-rich-content-plugin-image/dist/component'));
+
+const C = props => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <ImageViewer {...props} />
+  </Suspense>
+);
+
+// const Component = () => <div>xxx</div>
+
 export const editorPlugins = [
-  createImagePlugin,
+  createImagePlugin(C),
   createVideoPlugin,
   createHtmlPlugin,
   createDividerPlugin,

@@ -36,7 +36,7 @@ const plugins = [
     extensions: ['.js', '.jsx', '.json'],
   }),
   builtins(),
-  images(),
+  // images(),
   copy({
     files: 'statics/**/*',
     dest: 'dist',
@@ -119,33 +119,34 @@ const external = id =>
 
 let output = [
   {
-    file: 'dist/module.js',
+    // file: 'dist/module.js',
+    dir: 'dist',
     format: 'es',
     sourcemap: true,
   },
-  {
-    file: 'dist/module.cjs.js',
-    format: 'cjs',
-    sourcemap: true,
-  },
-  {
-    name: NAME,
-    format: 'iife',
-    file: `dist/${MODULE_NAME}.js`,
-    globals: id => {
-      const isExcluded = excludedGlobals.find(p => p === id);
-      if (!isExcluded) {
-        const globalKey = Object.keys(globals).find(
-          externalName => externalName === id || new RegExp(externalName + '/').test(id)
-        );
-        if (globalKey) {
-          return globals[globalKey];
-        }
-      }
-      return false;
-    },
-    sourcemap: true,
-  },
+  // {
+  //   file: 'dist/module.cjs.js',
+  //   format: 'cjs',
+  //   sourcemap: true,
+  // },
+  // {
+  //   name: NAME,
+  //   format: 'iife',
+  //   file: `dist/${MODULE_NAME}.js`,
+  //   globals: id => {
+  //     const isExcluded = excludedGlobals.find(p => p === id);
+  //     if (!isExcluded) {
+  //       const globalKey = Object.keys(globals).find(
+  //         externalName => externalName === id || new RegExp(externalName + '/').test(id)
+  //       );
+  //       if (globalKey) {
+  //         return globals[globalKey];
+  //       }
+  //     }
+  //     return false;
+  //   },
+  //   sourcemap: true,
+  // },
 ];
 
 if (process.env.MODULE_WATCH) {
@@ -157,34 +158,42 @@ const watch = {
   clearScreen: false,
 };
 
+const input = { module: 'src/index.js' };
+if (fs.existsSync('./src/Component.js')) {
+  input.component = 'src/Component.js';
+}
+if (fs.existsSync('./src/viewer.js')) {
+  input['module.viewer'] = 'src/viewer.js';
+}
+
 const editorEntry = {
-  input: 'src/index.js',
+  input,
   output: cloneDeep(output),
   plugins,
   external,
   watch,
 };
 
-let viewerEntry;
-try {
-  fs.accessSync('./src/viewer.js');
-  viewerEntry = {
-    input: 'src/viewer.js',
-    output: cloneDeep(output).map(o => {
-      const anchor = o.file.indexOf('.');
-      o.file = `${o.file.slice(0, anchor)}.viewer${o.file.slice(anchor)}`;
-      return o;
-    }),
-    plugins,
-    external,
-    watch,
-  };
-} catch (_) {}
+// let viewerEntry;
+// try {
+//   fs.accessSync('./src/viewer.js');
+//   viewerEntry = {
+//     input: { 'module.viewer': 'src/viewer.js' },
+//     output: cloneDeep(output).map(o => {
+//       const anchor = o.file.indexOf('.');
+//       o.file = `${o.file.slice(0, anchor)}.viewer${o.file.slice(anchor)}`;
+//       return o;
+//     }),
+//     plugins,
+//     external,
+//     watch,
+//   };
+// } catch (_) {}
 
 const config = [editorEntry];
 
-if (viewerEntry) {
-  config.push(viewerEntry);
-}
+// if (viewerEntry) {
+//   config.push(viewerEntry);
+// }
 
 export default config;

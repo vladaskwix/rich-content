@@ -7,7 +7,7 @@ import { Context } from 'wix-rich-content-common';
 const EMPTY_SMALL_PLACEHOLDER =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-class ImageComponent extends React.Component {
+export default class ImageComponent extends React.Component {
   static alignmentClassName = (componentData, theme, styles, isMobile) =>
     alignmentClassName(componentData, theme, styles, isMobile);
 
