@@ -9,7 +9,7 @@ import FileInput from '../Components/FileInput';
 import ToolbarButton from '../Components/ToolbarButton';
 import styles from '../../statics/styles/toolbar-button.scss';
 
-export default ({ blockType, button, helpers, pubsub, t }) => {
+export default ({ blockType, button, helpers, pubsub, settings, t }) => {
   class InsertPluginButton extends Component {
     constructor(props) {
       super(props);
@@ -23,14 +23,18 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
     createBlock = (data, shouldSetEditorState = false) => {
       const { getEditorState, setEditorState, hidePopup } = this.props;
       const contentState = getEditorState().getCurrentContent();
-      const contentStateWithEntity = contentState.createEntity(blockType, 'IMMUTABLE', cloneDeep(data));
+      const contentStateWithEntity = contentState.createEntity(
+        blockType,
+        'IMMUTABLE',
+        cloneDeep(data)
+      );
       const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
       const newEditorState = AtomicBlockUtils.insertAtomicBlock(getEditorState(), entityKey, ' ');
       if (hidePopup) {
         hidePopup();
       }
       const recentlyCreatedKey = newEditorState.getSelection().getAnchorKey();
-      //when adding atomic block, there is the atomic itself, and then there is a text block with one space,
+      // when adding atomic block, there is the atomic itself, and then there is a text block with one space,
       // so get the block before the space
       const newBlock = newEditorState.getCurrentContent().getBlockBefore(recentlyCreatedKey);
 
@@ -72,12 +76,17 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
       }
     };
 
-    handleExternalFileChanged = data => {
+    handleExternalFileChanged = (data, error) => {
       if (data) {
-        this.addBlock(button.componentData || {});
-        setTimeout(() => pubsub.getBlockHandler('handleFilesAdded')(data));
+        if (error) {
+          data.error = error;
+        }
+
+        const { newBlock } = this.addBlock(button.componentData || {});
+        const blockKey = newBlock.getKey();
+        setTimeout(() => pubsub.getBlockHandler('handleFilesAdded', blockKey)(data));
       }
-    }
+    };
 
     preventBubblingUp = event => event.preventDefault();
 
@@ -89,26 +98,37 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
       if (ButtonElement) {
         return (
           <WrappingComponent
-            className={styles.button} data-hook={`${name.replace(' ', '_')}_insert_plugin_button`}
+            className={styles.button}
+            data-hook={`${name.replace(' ', '_')}_insert_plugin_button`}
             onClick={this.onClick}
           >
             <div className={styles.icon}>
               <ButtonElement key="0" />
             </div>
-            {showName && <span key="1" className={styles.label}>{name}</span>}
+            {showName && (
+              <span key="1" className={styles.label}>
+                {name}
+              </span>
+            )}
           </WrappingComponent>
         );
-
       } else {
         return (
           <WrappingComponent
-            aria-label={`Add ${name}`} tabIndex={tabIndex}
-            className={styles.button} data-hook={`${name.replace(' ', '_')}_insert_plugin_button`} onClick={this.onClick}
+            aria-label={`Add ${name}`}
+            tabIndex={tabIndex}
+            className={styles.button}
+            data-hook={`${name.replace(' ', '_')}_insert_plugin_button`}
+            onClick={this.onClick}
           >
             <div className={styles.icon}>
               <Icon key="0" />
             </div>
-            {showName && <span key="1" className={styles.label}>{name}</span>}
+            {showName && (
+              <span key="1" className={styles.label}>
+                {name}
+              </span>
+            )}
           </WrappingComponent>
         );
       }
@@ -116,7 +136,6 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
 
     toggleButtonModal = event => {
       if (helpers && helpers.openModal) {
-
         let modalStyles = {};
         if (button.modalStyles) {
           modalStyles = button.modalStyles;
@@ -138,26 +157,34 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
           t,
         });
       }
-    }
+    };
 
     toggleFileSelection = () => {
-      const { handleFileSelection } = helpers || {};
-      if (handleFileSelection) {
+      if (settings && settings.handleFileSelection) {
+        settings.handleFileSelection(this.handleExternalFileChanged);
+      } else if (helpers && helpers.handleFileSelection) {
         const multiple = !!button.multi;
-        handleFileSelection(undefined, multiple, this.handleExternalFileChanged, undefined, button.componentData);
+        helpers.handleFileSelection(
+          undefined,
+          multiple,
+          this.handleExternalFileChanged,
+          undefined,
+          button.componentData
+        );
       }
-    }
+    };
 
     renderFileUploadButton = () => {
       const { showName, tabIndex } = this.props;
       const { name, Icon } = button;
+      const { accept } = settings || {};
       const { styles } = this;
       return (
         <FileInput
           dataHook={`${button.name}_file_input`}
           className={classNames(styles.button, styles.fileUploadButton)}
           onChange={this.handleFileChange}
-          accept="image/*"
+          accept={accept}
           multiple={button.multi}
           theme={this.props.theme}
           tabIndex={tabIndex}
@@ -165,7 +192,11 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
           <div className={styles.icon}>
             <Icon key="0" />
           </div>
-          {showName && <span key="1" className={styles.label}>{name}</span>}
+          {showName && (
+            <span key="1" className={styles.label}>
+              {name}
+            </span>
+          )}
         </FileInput>
       );
     };
@@ -175,17 +206,28 @@ export default ({ blockType, button, helpers, pubsub, t }) => {
       const { theme, isMobile } = this.props;
       const { tooltipText } = button;
       const showTooltip = !isMobile && !isEmpty(tooltipText);
-      const shouldRenderFileUploadButton = button.type === 'file' && !(helpers && helpers.handleFileSelection);
-      const buttonWrapperClassNames = classNames(
-        styles.buttonWrapper, { [styles.mobile]: isMobile });
+      const shouldRenderFileUploadButton =
+        button.type === 'file' &&
+        !((settings && settings.handleFileSelection) || (helpers && helpers.handleFileSelection));
+      const buttonWrapperClassNames = classNames(styles.buttonWrapper, {
+        [styles.mobile]: isMobile,
+      });
 
       const Button = (
         <div className={buttonWrapperClassNames}>
-          { shouldRenderFileUploadButton ? this.renderFileUploadButton() : this.renderButton()}
+          {shouldRenderFileUploadButton ? this.renderFileUploadButton() : this.renderButton()}
         </div>
       );
 
-      return <ToolbarButton theme={theme} showTooltip={showTooltip} tooltipText={tooltipText} button={Button} tooltipOffset={{ y: -10 }} />;
+      return (
+        <ToolbarButton
+          theme={theme}
+          showTooltip={showTooltip}
+          tooltipText={tooltipText}
+          button={Button}
+          tooltipOffset={{ y: -10 }}
+        />
+      );
     }
   }
 

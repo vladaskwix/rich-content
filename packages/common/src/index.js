@@ -8,7 +8,7 @@ export {
   SizeSmallRightButton,
   SizeContentButton,
   SizeFullWidthButton,
-  DeleteButton
+  DeleteButton,
 } from './Base/buttons';
 export * from './Icons';
 export { default as BUTTONS } from './Base/buttons/keys';
@@ -27,7 +27,7 @@ export { default as Dropdown } from './Components/Dropdown';
 export { default as FileInput } from './Components/FileInput';
 export { default as FocusManager } from './Components/FocusManager';
 export { default as Image } from './Components/Image';
-export { default as ImageLoader } from './Components/ImageLoader';
+export { default as Loader } from './Components/Loader';
 export { default as InputWithLabel } from './Components/InputWithLabel';
 export { default as LinkButton } from './Components/LinkButton';
 export { default as LinkPanel } from './Components/LinkPanel';
@@ -46,6 +46,7 @@ export { default as TextInput } from './Components/TextInput';
 export { default as ToolbarButton } from './Components/ToolbarButton';
 export { default as Tooltip } from './Components/Tooltip';
 export { default as TooltipHost } from './Components/TooltipHost';
+export { default as ColorPicker } from './Components/ColorPicker/ColorPicker';
 
 //Modals
 export { default as EditorModals } from './Modals/EditorModals';
@@ -88,7 +89,7 @@ export { sizeClassName, alignmentClassName, textWrapClassName } from './Utils/cl
 export { getSelectionStyles } from './Utils/inlineStyleUtils';
 export { getConfigByFormFactor } from './Utils/getConfigByFormFactor';
 export { mergeToolbarSettings } from './Utils/mergeToolbarSettings';
-
+export { default as Context } from './Utils/Context';
 export {
   COMMANDS,
   MODIFIERS,
@@ -96,4 +97,5 @@ export {
   DISPLAY_MODE,
   DECORATION_MODE,
   HEADER_BLOCK,
+  BLOCK_TYPES,
 } from './consts';

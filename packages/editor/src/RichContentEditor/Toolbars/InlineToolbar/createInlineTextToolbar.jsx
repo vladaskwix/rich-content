@@ -1,7 +1,7 @@
 import createInlineToolbar from './createInlineToolbar';
 import { getTextButtonsFromList } from '../buttons/utils';
 
-export default config => {
+export default data => {
   const {
     buttons,
     textPluginButtons,
@@ -18,9 +18,19 @@ export default config => {
     displayOptions,
     uiSettings,
     toolbarDecorationFn,
-  } = config;
+    config,
+  } = data;
 
-  const structure = getTextButtonsFromList({ buttons, textPluginButtons, pubsub, theme, t, uiSettings });
+  const structure = getTextButtonsFromList({
+    buttons,
+    textPluginButtons,
+    pubsub,
+    theme,
+    t,
+    uiSettings,
+    config,
+    isMobile,
+  });
 
   return createInlineToolbar({
     name: 'InlineTextToolbar',

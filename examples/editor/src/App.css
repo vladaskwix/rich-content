@@ -62,7 +62,7 @@
 
 .column {
   min-height: 650px;
-  padding: 0 10px;
+  margin: 0 10px;
 }
 
 .column.main {
@@ -97,5 +97,9 @@
     box-sizing: border-box;
     margin: 0;
     padding: 18px;
+  }
+
+  .content.android {
+    margin: 50px 0 0;
   }
 }

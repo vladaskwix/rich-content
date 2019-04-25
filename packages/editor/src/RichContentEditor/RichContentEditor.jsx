@@ -15,12 +15,14 @@ import handleKeyCommand from './handleKeyCommand';
 import handleReturnCommand from './handleReturnCommand';
 import blockStyleFn from './blockStyleFn';
 import getBlockRenderMap from './getBlockRenderMap';
+import { combineStyleFns } from './combineStyleFns';
 import { getStaticTextToolbarId } from './Toolbars/toolbar-id';
 import {
   AccessibilityListener,
   normalizeInitialState,
   TooltipHost,
-  TOOLBARS
+  TOOLBARS,
+  Context,
 } from 'wix-rich-content-common';
 import styles from '../../statics/styles/rich-content-editor.scss';
 import draftStyles from '../../statics/styles/draft.scss';
@@ -30,17 +32,40 @@ class RichContentEditor extends Component {
     super(props);
     this.state = {
       editorState: this.getInitialEditorState(),
-      theme: props.theme || {}
+      theme: props.theme || {},
     };
     this.refId = Math.floor(Math.random() * 9999);
 
-    props.config.uiSettings = merge({
-      blankTargetToggleVisibilityFn: anchorTarget => anchorTarget !== '_blank',
-      nofollowRelToggleVisibilityFn: relValue => relValue !== 'nofollow'
-    }, props.config.uiSettings || {});
+    props.config.uiSettings = merge(
+      {
+        blankTargetToggleVisibilityFn: anchorTarget => anchorTarget !== '_blank',
+        nofollowRelToggleVisibilityFn: relValue => relValue !== 'nofollow',
+      },
+      props.config.uiSettings || {}
+    );
 
+    this.initContext();
     this.initPlugins();
   }
+
+  getEditorState = () => this.state.editorState;
+
+  setEditorState = editorState => this.setState({ editorState });
+
+  initContext = () => {
+    const { theme, t, locale, anchorTarget, relValue, helpers, config, isMobile } = this.props;
+    this.contextualData = {
+      theme,
+      t,
+      locale,
+      anchorTarget,
+      relValue,
+      helpers,
+      config,
+      isMobile,
+      setEditorState: this.setEditorState,
+    };
+  };
 
   initPlugins() {
     const {
@@ -51,28 +76,33 @@ class RichContentEditor extends Component {
       anchorTarget,
       relValue,
       t,
+      customStyleFn,
     } = this.props;
 
     const { theme } = this.state;
-    const getEditorState = () => this.state.editorState;
-    const setEditorState = editorState => this.setState({ editorState });
-    const { pluginInstances, pluginButtons, pluginTextButtons, pubsubs } =
-      createPlugins({
-        plugins,
-        config,
-        helpers,
-        theme,
-        t,
-        isMobile,
-        anchorTarget,
-        relValue,
-        getEditorState,
-        setEditorState,
-      });
+    const {
+      pluginInstances,
+      pluginButtons,
+      pluginTextButtons,
+      pubsubs,
+      pluginStyleFns,
+    } = createPlugins({
+      plugins,
+      config,
+      helpers,
+      theme,
+      t,
+      isMobile,
+      anchorTarget,
+      relValue,
+      getEditorState: this.getEditorState,
+      setEditorState: this.setEditorState,
+    });
     this.initEditorToolbars(pluginButtons, pluginTextButtons);
     this.pluginKeyBindings = initPluginKeyBindings(pluginTextButtons);
     this.plugins = [...pluginInstances, ...Object.values(this.toolbars)];
     this.subscriberPubsubs = pubsubs || [];
+    this.customStyleFn = combineStyleFns([...pluginStyleFns, customStyleFn]);
   }
 
   initEditorToolbars(pluginButtons, pluginTextButtons) {
@@ -84,7 +114,7 @@ class RichContentEditor extends Component {
       isMobile,
       t,
       config = {},
-      textAlignment
+      textAlignment,
     } = this.props;
     const { theme } = this.state;
     const buttons = { pluginButtons, pluginTextButtons };
@@ -98,21 +128,21 @@ class RichContentEditor extends Component {
       textToolbarType,
       textAlignment,
       theme: theme || {},
-      getEditorState: () => this.state.editorState,
-      setEditorState: editorState => this.setState({ editorState }),
+      getEditorState: this.getEditorState,
+      setEditorState: this.setEditorState,
       t,
       refId: this.refId,
       getToolbarSettings: config.getToolbarSettings,
-      uiSettings: config.uiSettings
+      uiSettings: config.uiSettings,
+      config,
     });
   }
 
-  getToolbars = () => (
-    {
-      MobileToolbar: this.toolbars[TOOLBARS.MOBILE] ? this.toolbars[TOOLBARS.MOBILE].Toolbar : null,
-      TextToolbar: this.props.textToolbarType === 'static' ? this.toolbars[TOOLBARS.STATIC].Toolbar : null
-    }
-  )
+  getToolbars = () => ({
+    MobileToolbar: this.toolbars[TOOLBARS.MOBILE] ? this.toolbars[TOOLBARS.MOBILE].Toolbar : null,
+    TextToolbar:
+      this.props.textToolbarType === 'static' ? this.toolbars[TOOLBARS.STATIC].Toolbar : null,
+  });
 
   getInitialEditorState() {
     const { editorState, initialState, anchorTarget, relValue } = this.props;
@@ -121,11 +151,10 @@ class RichContentEditor extends Component {
     }
     if (initialState) {
       const rawContentState = normalizeInitialState(initialState, { anchorTarget, relValue });
-      return EditorState.createWithContent(
-        convertFromRaw(rawContentState)
-      );
+      return EditorState.createWithContent(convertFromRaw(rawContentState));
     } else {
-      const emptyContentState = convertFromRaw({ //this is needed for ssr. Otherwise the key will be generated randomly on both server and client.
+      const emptyContentState = convertFromRaw({
+        //this is needed for ssr. Otherwise the key will be generated randomly on both server and client.
         entityMap: {},
         blocks: [
           {
@@ -162,34 +191,39 @@ class RichContentEditor extends Component {
   getEditorState = () => this.state.editorState;
 
   updateEditorState = editorState => {
-    this.setState({ editorState });
+    this.setEditorState(editorState);
     this.props.onChange && this.props.onChange(editorState);
   };
 
   getCustomCommandHandlers = () => ({
-    commands: [...this.pluginKeyBindings.commands, {
-      command: 'tab',
-      modifiers: [],
-      key: 'Tab'
-    }],
+    commands: [
+      ...this.pluginKeyBindings.commands,
+      {
+        command: 'tab',
+        modifiers: [],
+        key: 'Tab',
+      },
+    ],
     commandHanders: {
       ...this.pluginKeyBindings.commandHandlers,
       tab: () => {
         if (this.getToolbars().TextToolbar) {
-          const staticToolbarButton = this.findFocusableChildForElement(`${getStaticTextToolbarId(this.refId)}`);
+          const staticToolbarButton = this.findFocusableChildForElement(
+            `${getStaticTextToolbarId(this.refId)}`
+          );
           staticToolbarButton && staticToolbarButton.focus();
         } else {
           this.editor.blur();
         }
       },
-    }
+    },
   });
 
   focus = () => this.editor.focus();
 
   blur = () => this.editor.blur();
 
-  setEditor = ref => this.editor = get(ref, 'editor', ref);
+  setEditor = ref => (this.editor = get(ref, 'editor', ref));
 
   updateBounds = editorBounds => {
     this.subscriberPubsubs.forEach(pubsub => pubsub.set('editorBounds', editorBounds));
@@ -260,7 +294,11 @@ class RichContentEditor extends Component {
     return (
       <Editor
         ref={this.setEditor}
-        handleReturn={handleReturn ? handleReturn(this.updateEditorState) : handleReturnCommand(this.updateEditorState)}
+        handleReturn={
+          handleReturn
+            ? handleReturn(this.updateEditorState)
+            : handleReturnCommand(this.updateEditorState)
+        }
         editorState={editorState}
         onChange={this.updateEditorState}
         handleBeforeInput={handleBeforeInput}
@@ -268,14 +306,18 @@ class RichContentEditor extends Component {
         plugins={this.plugins}
         blockStyleFn={blockStyleFn(theme)}
         blockRenderMap={getBlockRenderMap(theme)}
-        handleKeyCommand={handleKeyCommand(this.updateEditorState, this.getCustomCommandHandlers().commandHanders)}
+        handleKeyCommand={handleKeyCommand(
+          this.updateEditorState,
+          this.getCustomCommandHandlers().commandHanders
+        )}
         editorKey={editorKey}
         keyBindingFn={keyBindingFn(this.getCustomCommandHandlers().commands || [])}
+        customStyleFn={this.customStyleFn}
         helpers={helpers}
         tabIndex={tabIndex}
         placeholder={placeholder || ''}
         readOnly={!!readOnly}
-        spellCheck={spellCheck || true}
+        spellCheck={spellCheck}
         stripPastedStyles={stripPastedStyles}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
@@ -294,35 +336,33 @@ class RichContentEditor extends Component {
     );
   };
 
-  renderAccessibilityListener = () => <AccessibilityListener isMobile={this.props.isMobile} />;
+  renderAccessibilityListener = () => <AccessibilityListener />;
 
-  renderTooltipHost = () => <TooltipHost theme={this.state.theme} />
+  renderTooltipHost = () => <TooltipHost />;
 
   render() {
     const { isMobile } = this.props;
     const { theme } = this.state;
-    const wrapperClassName = classNames(
-      draftStyles.wrapper,
-      styles.wrapper,
-      theme.wrapper,
-      {
-        [styles.desktop]: !isMobile,
-        [theme.desktop]: !isMobile && theme && theme.desktop,
-      }
-    );
+    const wrapperClassName = classNames(draftStyles.wrapper, styles.wrapper, theme.wrapper, {
+      [styles.desktop]: !isMobile,
+      [theme.desktop]: !isMobile && theme && theme.desktop,
+    });
     return (
-      <Measure bounds onResize={({ bounds }) => this.updateBounds(bounds)}>
-        {({ measureRef }) => (
-          <div style={this.props.style} ref={measureRef} className={wrapperClassName}>
-            <div className={classNames(styles.editor, theme.editor)}>
-              {this.renderAccessibilityListener()}
-              {this.renderEditor()}
-              {this.renderToolbars()}
-              {this.renderInlineModals()}
-              {this.renderTooltipHost()}
+      <Context.Provider value={this.contextualData}>
+        <Measure bounds onResize={({ bounds }) => this.updateBounds(bounds)}>
+          {({ measureRef }) => (
+            <div style={this.props.style} ref={measureRef} className={wrapperClassName}>
+              <div className={classNames(styles.editor, theme.editor)}>
+                {this.renderAccessibilityListener()}
+                {this.renderEditor()}
+                {this.renderToolbars()}
+                {this.renderInlineModals()}
+                {this.renderTooltipHost()}
+              </div>
             </div>
-          </div>)}
-      </Measure>
+          )}
+        </Measure>
+      </Context.Provider>
     );
   }
 }
@@ -363,10 +403,14 @@ RichContentEditor.propTypes = {
   handleBeforeInput: PropTypes.func,
   handlePastedText: PropTypes.func,
   handleReturn: PropTypes.func,
+  customStyleFn: PropTypes.func,
+  locale: PropTypes.string,
 };
 
 RichContentEditor.defaultProps = {
-  config: {}
+  config: {},
+  spellCheck: true,
+  customStyleFn: () => ({}),
 };
 
 export default translate(null, { withRef: true })(RichContentEditor);

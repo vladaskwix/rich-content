@@ -1,11 +1,13 @@
 {
   "extends": [
     "wix/react",
-    "plugin:jsx-a11y/strict"
+    "plugin:jsx-a11y/strict",
+    "prettier"
   ],
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "jest": true
   },
   "plugins": [
     "lodash",
@@ -15,7 +17,7 @@
   ],
   "settings": {
     "react": {
-      "version": "15.5.4"
+      "version": "16.6.3"
     }
   },
   "rules": {
@@ -27,7 +29,6 @@
         "allowTemplateLiterals": true
       }
     ],
-    "jsx-quotes": ["warn", "prefer-single"],
     "react/jsx-closing-tag-location": "error",
     "react/jsx-closing-bracket-location": [
       1,
@@ -50,7 +51,8 @@
     "max-len": [
       "error",
       {
-        "code": 150
+        "code": 100,
+        "ignoreComments": true
       }
     ],
     "react/jsx-no-bind": 0,
@@ -63,6 +65,6 @@
     "no-param-reassign": "warn",
     "jsx-a11y/label-has-for": "off",
     "jsx-a11y/aria-proptypes": "off",
-    "prettier/prettier": "warn"
+    "prettier/prettier": "error"
   }
 }

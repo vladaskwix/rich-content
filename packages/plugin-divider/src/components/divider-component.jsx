@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { mergeStyles, validate } from 'wix-rich-content-common';
+import { mergeStyles, validate, Context } from 'wix-rich-content-common';
 import isEqual from 'lodash/isEqual';
 import { getType, getConfig } from '../toolbar/selectors';
 import DividerLine from './divider-line';
@@ -12,7 +12,6 @@ class DividerComponent extends PureComponent {
   constructor(props) {
     super(props);
     validate(props.componentData, schema);
-    this.styles = mergeStyles({ styles, theme: props.theme });
     this.state = this.stateFromProps(props);
   }
 
@@ -33,28 +32,25 @@ class DividerComponent extends PureComponent {
   };
 
   render() {
-    const styles = this.styles;
+    this.styles = this.styles || mergeStyles({ styles, theme: this.context.theme });
     const { editorBounds } = this.props;
     const editorWidth = editorBounds ? editorBounds.width : 740;
     const { type, size, alignment } = this.state;
     const className = classNames(
-      styles['divider-container'],
+      this.styles['divider-container'],
       this.styles[`divider-container--${type}`],
-      this.props.isMobile && this.styles['divider-container--mobile'],
+      this.context.isMobile && this.styles['divider-container--mobile'],
       this.props.className
     );
     return (
-      <div
-        className={className}
-        data-hook={`divider-${type}`}
-      >
+      <div className={className} data-hook={`divider-${type}`}>
         <DividerLine
           type={type}
           width={editorWidth}
           size={size}
-          isMobile={this.props.isMobile}
           alignment={alignment}
           styles={styles}
+          contextType={DividerComponent.contextType || Context.type}
         />
       </div>
     );
@@ -67,9 +63,9 @@ DividerComponent.propTypes = {
   store: PropTypes.object,
   blockProps: PropTypes.object,
   className: PropTypes.string,
-  theme: PropTypes.object,
-  isMobile: PropTypes.bool,
   editorBounds: PropTypes.object,
 };
+
+DividerComponent.contextType = Context.type;
 
 export default DividerComponent;

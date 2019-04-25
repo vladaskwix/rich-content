@@ -3,7 +3,7 @@ import SideToolbar from './SideToolbar';
 import AddPluginFloatingToolbar from './AddPluginFloatingToolbar';
 import { simplePubsub, decorateComponentWithProps } from 'wix-rich-content-common';
 
-const createSideToolbar = (config = {}) => {
+const createSideToolbar = (data = {}) => {
   const {
     name = 'SideToolbar',
     pubsub = simplePubsub({ isVisible: false }),
@@ -14,7 +14,8 @@ const createSideToolbar = (config = {}) => {
     isMobile,
     displayOptions,
     toolbarDecorationFn,
-  } = config;
+    config,
+  } = data;
 
   const toolbarProps = {
     pubsub,
@@ -25,6 +26,7 @@ const createSideToolbar = (config = {}) => {
     visibilityFn,
     displayOptions,
     toolbarDecorationFn,
+    config,
   };
 
   return {
@@ -41,8 +43,19 @@ const createSideToolbar = (config = {}) => {
   };
 };
 
-export default ({ buttons, offset, pubsub, theme, visibilityFn, isMobile, helpers, t, displayOptions, toolbarDecorationFn }) => {
-
+export default ({
+  buttons,
+  offset,
+  pubsub,
+  theme,
+  visibilityFn,
+  isMobile,
+  helpers,
+  t,
+  displayOptions,
+  toolbarDecorationFn,
+  config,
+}) => {
   const { buttonStyles, ...rest } = theme;
   const toolbarButtonTheme = {
     buttonStyles: {
@@ -51,7 +64,7 @@ export default ({ buttons, offset, pubsub, theme, visibilityFn, isMobile, helper
       icon: buttonStyles.sideToolbarButton_icon,
       label: buttonStyles.sideToolbarButton_label,
     },
-    ...rest
+    ...rest,
   };
   return createSideToolbar({
     offset,
@@ -60,9 +73,12 @@ export default ({ buttons, offset, pubsub, theme, visibilityFn, isMobile, helper
     isMobile,
     displayOptions,
     toolbarDecorationFn,
+    config,
     structure: [
-      ({ getEditorState, setEditorState }) => //eslint-disable-line
-        (<AddPluginFloatingToolbar
+      (
+        { getEditorState, setEditorState } //eslint-disable-line
+      ) => (
+        <AddPluginFloatingToolbar
           getEditorState={getEditorState}
           setEditorState={setEditorState}
           theme={toolbarButtonTheme}
@@ -71,7 +87,8 @@ export default ({ buttons, offset, pubsub, theme, visibilityFn, isMobile, helper
           isMobile={isMobile}
           helpers={helpers}
           t={t}
-        />),
+        />
+      ),
     ],
   });
 };

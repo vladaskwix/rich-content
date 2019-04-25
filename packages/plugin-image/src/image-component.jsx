@@ -2,38 +2,41 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ImageViewer, getDefault } from './image-viewer';
 import { sizeClassName, alignmentClassName } from './classNameStrategies';
+import { Context } from 'wix-rich-content-common';
 
-const EMPTY_SMALL_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const EMPTY_SMALL_PLACEHOLDER =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 class ImageComponent extends React.Component {
+  static alignmentClassName = (componentData, theme, styles, isMobile) =>
+    alignmentClassName(componentData, theme, styles, isMobile);
 
-    static alignmentClassName = (componentData, theme, styles) => alignmentClassName(componentData, theme, styles);
+  static sizeClassName = (componentData, theme, styles, isMobile) =>
+    sizeClassName(componentData, theme, styles, isMobile);
 
-    static sizeClassName = (componentData, theme, styles) => sizeClassName(componentData, theme, styles);
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({ isMounted: false }, this.stateFromProps(props));
 
-    constructor(props) {
-      super(props);
-      this.state = Object.assign({ isMounted: false }, this.stateFromProps(props));
-
-      const { block, store } = this.props;
-      if (store) {
-        const blockKey = block.getKey();
-        store.setBlockHandler('handleFilesSelected', blockKey, this.handleFilesSelected.bind(this));
-        store.setBlockHandler('handleFilesAdded', blockKey, this.handleFilesAdded.bind(this));
-      }
+    const { block, store } = this.props;
+    if (store) {
+      const blockKey = block.getKey();
+      store.setBlockHandler('handleFilesSelected', blockKey, this.handleFilesSelected.bind(this));
+      store.setBlockHandler('handleFilesAdded', blockKey, this.handleFilesAdded.bind(this));
     }
+  }
 
-    componentDidMount() {
-      this.state.isMounted = true; //eslint-disable-line react/no-direct-mutation-state
-    }
+  componentDidMount() {
+    this.state.isMounted = true; //eslint-disable-line react/no-direct-mutation-state
+  }
 
-    componentWillUnmount() {
-      this.state.isMounted = false; //eslint-disable-line react/no-direct-mutation-state
-    }
+  componentWillUnmount() {
+    this.state.isMounted = false; //eslint-disable-line react/no-direct-mutation-state
+  }
 
-    componentWillReceiveProps(nextProps) {
-      this.setState(this.stateFromProps(nextProps));
-    }
+  componentWillReceiveProps(nextProps) {
+    this.setState(this.stateFromProps(nextProps));
+  }
 
   stateFromProps = props => {
     const componentState = props.componentState || {};
@@ -86,10 +89,12 @@ class ImageComponent extends React.Component {
         fileError: null,
       });
     }
-    const { helpers } = this.props;
+    const { helpers } = this.context;
     const hasFileChangeHelper = helpers && helpers.onFilesChange;
     if (hasFileChangeHelper && fileList.length > 0) {
-      helpers.onFilesChange(fileList[0], ({ data, error }) => this.handleFilesAdded({ data, error }));
+      helpers.onFilesChange(fileList[0], ({ data, error }) =>
+        this.handleFilesAdded({ data, error })
+      );
     } else {
       this.resetLoadingState({ msg: 'Missing upload function' });
     }
@@ -126,25 +131,24 @@ class ImageComponent extends React.Component {
   };
 
   render() {
-    const { settings, t } = this.props;
+    const { settings, componentData, onClick, className, blockProps } = this.props;
     return (
       <ImageViewer
-        componentData={this.props.componentData}
-        isMobile={this.props.isMobile}
-        onClick={this.props.onClick}
-        className={this.props.className}
-        theme={this.props.theme}
-        helpers={this.props.helpers}
+        componentData={componentData}
+        onClick={onClick}
+        className={className}
         isLoading={this.state.isLoading}
         dataUrl={this.state.dataUrl}
-        isFocused={this.props.blockProps.isFocused}
-        readOnly={this.props.blockProps.readOnly}
+        isFocused={blockProps.isFocused}
+        readOnly={blockProps.readOnly}
         settings={settings}
-        defaultCaption={t('ImageViewer_Caption')}
+        defaultCaption={this.context.t('ImageViewer_Caption')}
       />
     );
   }
 }
+
+ImageComponent.contextType = Context.type;
 
 ImageComponent.propTypes = {
   componentData: PropTypes.object.isRequired,
@@ -154,11 +158,7 @@ ImageComponent.propTypes = {
   block: PropTypes.object.isRequired,
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string.isRequired,
-  theme: PropTypes.object.isRequired,
-  helpers: PropTypes.object.isRequired,
-  isMobile: PropTypes.bool,
   settings: PropTypes.object,
-  t: PropTypes.func
 };
 
 export { ImageComponent as Component, getDefault };
