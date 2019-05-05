@@ -19,6 +19,8 @@ import {
 import { createMapPlugin, MAP_TYPE } from 'wix-rich-content-plugin-map';
 import { createFileUploadPlugin, FILE_UPLOAD_TYPE } from 'wix-rich-content-plugin-file-upload';
 import { createTextColorPlugin, TEXT_COLOR_TYPE } from 'wix-rich-content-plugin-text-color';
+import { createGalleryPlugin } from 'wix-rich-content-plugin-gallery';
+
 
 import React from 'react';
 import Highlighter from 'react-highlight-words';
@@ -39,6 +41,7 @@ import 'wix-rich-content-plugin-sound-cloud/dist/styles.min.css';
 import 'wix-rich-content-plugin-giphy/dist/styles.min.css';
 import 'wix-rich-content-plugin-map/dist/styles.min.css';
 import 'wix-rich-content-plugin-file-upload/dist/styles.min.css';
+import 'wix-rich-content-plugin-gallery/dist/styles.min.css';
 
 import {
   getPaletteColors,
@@ -70,6 +73,7 @@ export const editorPlugins = [
   createMapPlugin,
   createFileUploadPlugin,
   createTextColorPlugin,
+  createGalleryPlugin,
 ];
 
 const themeColors = {
